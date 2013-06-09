@@ -95,15 +95,36 @@ end;%diffusion1dlog
 
 
 
-
-
-% Konvergenz prüfen
-steps = 11;
+if 0
+% Lösung plotten
 alpha = 1e-0;
 f = @(x)-alpha*pi^2/4*sin(pi/2*x);
-i = 1:steps;
 % exakte Lösung
 solution = @(x)1+sin(pi/2*x);
+
+n=50;
+% Plotting
+[xc1, phi1, dx1] = diffusion1d(n, 1, 2, f, alpha);
+[xc2, phi2, dx2] = diffusion1dlog(n, 1, 2, f, alpha);
+clf;
+title('Lösung');
+hold on;
+%plot([0, xc1', 1], [1,hi1', 2], 'bx-')
+plot([0, xc2', 1], [1, phi2', 2], 'rx-')
+plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
+
+% Fehler
+figure;
+title('Fehler');
+hold on;
+plot([0, xc1', 1], [1, phi1', 2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
+plot([0, xc2', 1], [1, phi2', 2] - arrayfun(solution, [0, xc2', 1]), 'rx-')
+end;
+
+if 1
+% Konvergenz prüfen
+steps = 11;
+i = 1:steps;
 mean_error = delta_x = deal(zeros(steps, 1));
 
 for j = i
@@ -112,24 +133,17 @@ for j = i
   mean_error(j) = mean(abs(phi- arrayfun(solution, xc)));
   delta_x(j) = dx(1);
 endfor;
-n=2^3;
-% Plotting
-[xc1, phi1, dx1] = diffusion1d(n, 1, 2, f, alpha);
-[xc2, phi2, dx2] = diffusion1dlog(n, 1, 2, f, alpha);
-clf;
-hold on;
-%plot([0, xc1', 1], [1,hi1', 2], 'bx-')
-plot([0, xc2', 1], [1, phi2', 2], 'rx-')
-plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
+
 figure;
-hold on;
-plot([0, xc1', 1], [1, phi1', 2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
-plot([0, xc2', 1], [1, phi2', 2] - arrayfun(solution, [0, xc2', 1]), 'rx-')
-figure;
-semilogy(i, mean_error, '.-.')
-xlabel('Anzahl der KV (2^i)')
-ylabel('Fehler')
+%title('Fehlerkonvergenz');
+%semilogy(i, mean_error, '.-.')
+%xlabel('Anzahl der KV (2^i)')
+%ylabel('Fehler')
 
 p = log(mean_error(1:steps-1)./mean_error(2:steps))/log(2)
-figure;
-plot(p);
+[haxes,hline1,hline2] = plotyy(1:11, mean_error, 1:10, p, 'semilogy', 'plot');
+axes(haxes(1))
+ylabel('Fehlerkonvergenz')
+axes(haxes(2))
+ylabel('Beobachteter Exponent')
+end
