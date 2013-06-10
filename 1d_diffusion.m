@@ -13,7 +13,7 @@ x = [loginterval(from, half, n/2+1), fliplr(loginterval(to, half, n/2+1))];
 x(n/2+1)=[];
 end;
 
-function [xc, phi, dx] = diffusion1d(n, f0, fn, f, alpha)
+function [xc, phi, dx, A, b] = diffusion1d(n, f0, fn, f, alpha)
 % Anzahl der KV
 %n = 25;
 x = linspace(0, 1, n + 1);
@@ -47,7 +47,7 @@ end;%diffusion1d
 
 
 
-function [xc, phi, dx] = diffusion1dlog(n, f0, fn, f, alpha)
+function [xc, phi, dx, A, b] = diffusion1dlog(n, f0, fn, f, alpha)
 x = doublelog(0, 1, n);
 xc = zeros(n, 1);
 xc(1:n) = 0.5 * (x(1:n) + x(2:n+1));
@@ -95,7 +95,7 @@ end;%diffusion1dlog
 
 
 
-if 0
+if 1
 % Lösung plotten
 alpha = 1e-0;
 f = @(x)-alpha*pi^2/4*sin(pi/2*x);
@@ -104,10 +104,10 @@ solution = @(x)1+sin(pi/2*x);
 
 n=50;
 % Plotting
-[xc1, phi1, dx1] = diffusion1d(n, 1, 2, f, alpha);
-[xc2, phi2, dx2] = diffusion1dlog(n, 1, 2, f, alpha);
+[xc1, phi1, dx1, A1, b1] = diffusion1d(n, 1, 2, f, alpha);
+[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, 1, 2, f, alpha);
 clf;
-title('Lösung');
+title('Loesung');
 hold on;
 %plot([0, xc1', 1], [1,hi1', 2], 'bx-')
 plot([0, xc2', 1], [1, phi2', 2], 'rx-')
@@ -119,6 +119,12 @@ title('Fehler');
 hold on;
 plot([0, xc1', 1], [1, phi1', 2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
 plot([0, xc2', 1], [1, phi2', 2] - arrayfun(solution, [0, xc2', 1]), 'rx-')
+
+figure;
+phi1_exact = arrayfun(solution, xc1);
+residuum = abs(A1*phi1_exact - b1);
+title('Residuum');
+semilogy(xc1, residuum, 'x-')
 end;
 
 if 1
@@ -129,7 +135,7 @@ mean_error = delta_x = deal(zeros(steps, 1));
 
 for j = i
   n = 2^j;
-  [xc, phi, dx] = diffusion1dlog(n, 1, 2, f, alpha);
+  [xc, phi, dx, A, b] = diffusion1dlog(n, 1, 2, f, alpha);
   mean_error(j) = mean(abs(phi- arrayfun(solution, xc)));
   delta_x(j) = dx(1);
 endfor;
@@ -141,6 +147,7 @@ figure;
 %ylabel('Fehler')
 
 p = log(mean_error(1:steps-1)./mean_error(2:steps))/log(2)
+
 [haxes,hline1,hline2] = plotyy(1:11, mean_error, 1:10, p, 'semilogy', 'plot');
 axes(haxes(1))
 ylabel('Fehlerkonvergenz')
