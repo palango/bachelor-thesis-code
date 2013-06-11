@@ -98,27 +98,27 @@ end;%diffusion1dlog
 if 1
 % Lösung plotten
 alpha = 1e-0;
-f = @(x)-alpha*pi^2/4*sin(pi/2*x);
+f = @(x)-alpha*pi^2*sin(pi*x);
 % exakte Lösung
-solution = @(x)1+sin(pi/2*x);
+solution = @(x)1+sin(pi*x);
 
 n=50;
 % Plotting
-[xc1, phi1, dx1, A1, b1] = diffusion1d(n, 1, 2, f, alpha);
-[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, 1, 2, f, alpha);
+[xc1, phi1, dx1, A1, b1] = diffusion1d(n, 1, 1, f, alpha);
+[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, 1, 1, f, alpha);
 clf;
 title('Loesung');
 hold on;
-%plot([0, xc1', 1], [1,hi1', 2], 'bx-')
-plot([0, xc2', 1], [1, phi2', 2], 'rx-')
+plot([0, xc1', 1], [1, phi1', 1], 'bx-')
+plot([0, xc2', 1], [1, phi2', 1], 'rx-')
 plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
 
 % Fehler
 figure;
 title('Fehler');
 hold on;
-plot([0, xc1', 1], [1, phi1', 2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
-plot([0, xc2', 1], [1, phi2', 2] - arrayfun(solution, [0, xc2', 1]), 'rx-')
+plot([0, xc1', 1], [1, phi1', 1] - arrayfun(solution, [0, xc1', 1]), 'bx-')
+plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
 
 figure;
 phi1_exact = arrayfun(solution, xc1);
@@ -135,7 +135,7 @@ mean_error = delta_x = deal(zeros(steps, 1));
 
 for j = i
   n = 2^j;
-  [xc, phi, dx, A, b] = diffusion1dlog(n, 1, 2, f, alpha);
+  [xc, phi, dx, A, b] = diffusion1dlog(n, 1, 1, f, alpha);
   mean_error(j) = mean(abs(phi- arrayfun(solution, xc)));
   delta_x(j) = dx(1);
 endfor;
