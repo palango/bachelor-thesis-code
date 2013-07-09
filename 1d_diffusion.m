@@ -13,7 +13,8 @@ x = [loginterval(from, half, n/2+1), fliplr(loginterval(to, half, n/2+1))];
 x(n/2+1)=[];
 end;
 
-function [xc, phi, dx, A, b] = diffusion1d(n, f0, fn, f, alpha)
+% Äquidistante Punkte
+function [xc, phi, dx, A, b, TE] = diffusion1d(n, f0, fn, f, alpha)
 % Anzahl der KV
 %n = 25;
 x = linspace(0, 1, n + 1);
@@ -41,6 +42,12 @@ b(1) = b(1) - 2*a*f0;
 b(n) = b(n) - 2*a*fn;
 
 phi = A\b;
+
+
+% Truncation Error berechnen
+for i=3:n-2
+  TE(i) = dx(1)/3 * (b(i+1) - 2*b(i) + b(i-1)) - (phi(i+1)-2*phi(i+1)+2*phi(i-1)-phi(i-2))/(24*dx(1));
+endfor;
 
 end;%diffusion1d
 
@@ -102,9 +109,9 @@ f = @(x)-alpha*pi^2*sin(pi*x);
 % exakte Lösung
 solution = @(x)1+sin(pi*x);
 
-n=50;
+n=200;
 % Plotting
-[xc1, phi1, dx1, A1, b1] = diffusion1d(n, 1, 1, f, alpha);
+[xc1, phi1, dx1, A1, b1, TE1] = diffusion1d(n, 1, 1, f, alpha);
 [xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, 1, 1, f, alpha);
 clf;
 title('Loesung');
@@ -127,7 +134,7 @@ title('Residuum');
 semilogy(xc1, residuum, 'x-')
 end;
 
-if 1
+if 0
 % Konvergenz prüfen
 steps = 11;
 i = 1:steps;
@@ -135,7 +142,7 @@ mean_error = delta_x = deal(zeros(steps, 1));
 
 for j = i
   n = 2^j;
-  [xc, phi, dx, A, b] = diffusion1dlog(n, 1, 1, f, alpha);
+  [xc, phi, dx, A, b, TE] = diffusion1dlog(n, 1, 1, f, alpha);
   mean_error(j) = mean(abs(phi- arrayfun(solution, xc)));
   delta_x(j) = dx(1);
 endfor;
