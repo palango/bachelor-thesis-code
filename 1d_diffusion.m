@@ -46,7 +46,8 @@ phi = A\b;
 
 % Truncation Error berechnen
 for i=3:n-2
-  TE(i) = dx(1)/3 * (b(i+1) - 2*b(i) + b(i-1)) - (phi(i+1)-2*phi(i+1)+2*phi(i-1)-phi(i-2))/(24*dx(1));
+  %TE(i) = dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)) - (phi(i+1)-2*phi(i+1)+2*phi(i-1)-phi(i-2))/(24*dx(1));
+  TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1))) + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1))) - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1)));
 endfor;
 
 end;%diffusion1d
@@ -116,22 +117,23 @@ n=200;
 clf;
 title('Loesung');
 hold on;
-plot([0, xc1', 1], [1, phi1', 1], 'bx-')
-plot([0, xc2', 1], [1, phi2', 1], 'rx-')
-plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
+%plot([0, xc1', 1], [1, phi1', 1], 'bx-')
+%plot([0, xc2', 1], [1, phi2', 1], 'rx-')
+%plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
 
 % Fehler
 figure;
 title('Fehler');
 hold on;
-plot([0, xc1', 1], [1, phi1', 1] - arrayfun(solution, [0, xc1', 1]), 'bx-')
-plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
+%plot([0, xc1', 1], [1, phi1', 1] - arrayfun(solution, [0, xc1', 1]), 'bx-')
+%plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
 
-figure;
-phi1_exact = arrayfun(solution, xc1);
-residuum = abs(A1*phi1_exact - b1);
-title('Residuum');
-semilogy(xc1, residuum, 'x-')
+%figure;
+%phi1_exact = arrayfun(solution, xc1);
+%residuum = abs(A1*phi1_exact - b1);
+%title('Residuum');
+%semilogy(xc1, residuum, 'x-')
+plot(TE1)
 end;
 
 if 0
