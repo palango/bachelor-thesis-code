@@ -13,9 +13,9 @@ x = [loginterval(from, half, n/2+1), fliplr(loginterval(to, half, n/2+1))];
 x(n/2+1)=[];
 end;
 
-function [xc, phi, dx, A, b, TE] = convection1d(n, f0, fn, f, v, rho)
+function [xc, phi, dx, A, b, TE] = convection1d(n, f0, fn, f, v, rho, beta)
 
-x = linspace(0, 1, n + 1)
+x = linspace(0, 1, n + 1);
 xc = zeros(n, 1);
 xc(1:n) = 0.5 * (x(1:n) + x(2:n+1));
 
@@ -23,32 +23,34 @@ dx = x(2:n+1) - x(1:n);
 
 % Gleichungssystem für äquidistantes Gitter
 A = zeros(n);
-a = rho * v / (2 * dx(1));
+a = rho * v / (dx(1));
 
-A = diag(same(0, n)) + diag(same(a, n-1), 1) + diag(same(-a, n-1), -1);
+A = diag(same(a*(1-beta), n)) + diag(same(a*beta/2, n-1), 1) + diag(same(-a*(1-beta/2), n-1), -1);
 
 % Quellterme in Mittelpunkten berechnen
-b = arrayfun(f, xc)
+b = arrayfun(f, xc);
 
 % Randbedingungen in A
-A(1, 1) = a;
-A(n, n) = -a;
+A(1, 1) = a*(1-beta/2);
+A(n, n) = -a*(beta/2);
 % Randbedingungen in b einfügen
-b(1) = b(1) + 2*a*f0;
-b(n) = b(n) - 2*a*fn;
+b(1) = b(1) + a*f0;
+b(n) = b(n) - a*fn;
 
 phi = pinv(A)*b;
 TE=0;
 end;
 
 
-n=940;
+n=20;
 rho = 1;
+beta = 0.0;
 v = 1;
 solution = @(x)-1+cos( pi*x);
 f = @(x)-rho*v*pi*sin( pi*x);
 
-[xc1, phi1, dx1, A1, b1, TE1] = convection1d(n, 0,-2, f, rho, v);
+[xc1, phi1, dx1, A1, b1, TE1] = convection1d(n, 0,-2, f, rho, v, beta);
+figure;
 plot(xc1, phi1, '-');
 
 
@@ -72,11 +74,11 @@ plot(xc1, phi1, '-');
 %plot([0, xc2', 1], [1, phi2', 1], 'rx-')
 %plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
 
-%% Fehler
-%figure;
-%title('Fehler');
-%hold on;
-%plot([0, xc1', 1], [1, phi1', 1] - arrayfun(solution, [0, xc1', 1]), 'bx-')
+% Fehler
+figure;
+title('Fehler');
+hold on;
+plot([0, xc1', 1], [0, phi1', -2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
 %plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
 
 %figure;
