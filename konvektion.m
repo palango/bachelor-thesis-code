@@ -42,16 +42,51 @@ TE=0;
 end;
 
 
-n=20;
+
+function [xc, phi, dx, A, b, TE] = combined1d(n, f0, fn, f, v, rho, alpha, beta)
+p=1;q=1;
+x = linspace(0, 1, n + 1);
+xc = zeros(n, 1);
+xc(1:n) = 0.5 * (x(1:n) + x(2:n+1));
+
+dx = x(2:n+1) - x(1:n);
+
+% Gleichungssystem für äquidistantes Gitter
+A = zeros(n);
+a = rho * v / (dx(1));
+c = alpha / dx(1)^2;
+
+A = diag(same(q*a*(1-beta)-p*2*c, n)) + diag(same(q*a*beta/2+p*c, n-1), 1) + diag(same(q*(-a)*(1-beta/2)+p*c, n-1), -1);
+
+% Quellterme in Mittelpunkten berechnen
+b = arrayfun(f, xc);
+
+% Randbedingungen in A
+A(1, 1) = q*a*(1-beta/2)-3*c*p;
+A(n, n) = q*(-a)*(beta/2)-p*3*c;
+% Randbedingungen in b einfügen
+b(1) = b(1) + a*f0*q-p*2*c*f0;
+b(n) = b(n) - a*fn*q-p*2*c*fn;
+
+phi = pinv(A)*b;
+TE=0;
+end;
+
+
+
+n=100;
+alpha = 1;
 rho = 1;
-beta = 0.0;
+beta = 0.5;
 v = 1;
 solution = @(x)-1+cos( pi*x);
-f = @(x)-rho*v*pi*sin( pi*x);
+%f = @(x)-rho*v*pi*sin( pi*x);
+f = @(x)-rho*v*pi*sin( pi*x)*1-1*alpha*pi^2*cos(pi*x);
 
-[xc1, phi1, dx1, A1, b1, TE1] = convection1d(n, 0,-2, f, rho, v, beta);
+%[xc1, phi1, dx1, A1, b1, TE1] = convection1d(n, 0,-2, f, rho, v, beta);
+[xc1, phi1, dx1, A1, b1, TE1] = combined1d(n, 0,-2, f, rho, v, alpha, beta);
 figure;
-plot(xc1, phi1, '-');
+plot(xc1, phi1, '-x');
 
 
 
@@ -81,11 +116,11 @@ hold on;
 plot([0, xc1', 1], [0, phi1', -2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
 %plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
 
-%figure;
-%phi1_exact = arrayfun(solution, xc1);
-%residuum = abs(A1*phi1_exact - b1);
-%title('Residuum');
-%semilogy(xc1, residuum, 'x-')
+figure;
+phi1_exact = arrayfun(solution, xc1);
+residuum = (A1*phi1_exact - b1);
+title('Residuum');
+plot(xc1, residuum, 'x-')
 %end;
 
 %if 0
