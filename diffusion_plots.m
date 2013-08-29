@@ -1,5 +1,3 @@
-source('diffusion.m') % Funktionen einbinden
-
 if 1
 
 % Parameter
