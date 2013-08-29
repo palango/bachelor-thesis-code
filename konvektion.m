@@ -69,84 +69,13 @@ b(1) = b(1) + a*f0*q-p*2*c*f0;
 b(n) = b(n) - a*fn*q-p*2*c*fn;
 
 phi = pinv(A)*b;
-TE=0;
+
+% Truncation Error berechnen
+for i=3:n-2
+  TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
+        + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
+        - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
+endfor;
+
+
 end;
-
-
-
-n=100;
-alpha = 1;
-rho = 1;
-beta = 0.5;
-v = 1;
-solution = @(x)-1+cos( pi*x);
-%f = @(x)-rho*v*pi*sin( pi*x);
-f = @(x)-rho*v*pi*sin( pi*x)*1-1*alpha*pi^2*cos(pi*x);
-
-%[xc1, phi1, dx1, A1, b1, TE1] = convection1d(n, 0,-2, f, rho, v, beta);
-[xc1, phi1, dx1, A1, b1, TE1] = combined1d(n, 0,-2, f, rho, v, alpha, beta);
-figure;
-plot(xc1, phi1, '-x');
-
-
-
-
-%if 1
-%% Lösung plotten
-%alpha = 1e-0;
-%f = @(x)-alpha*pi^2*sin(pi*x);
-%% exakte Lösung
-%solution = @(x)1+sin(pi*x);
-
-%n=20;
-%% Plotting
-%[xc1, phi1, dx1, A1, b1, TE1] = diffusion1d(n, 1, 1, f, alpha);
-%[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, 1, 1, f, alpha);
-%clf;
-%title('Loesung');
-%hold on;
-%plot([0, xc1', 1], [1, phi1', 1], 'bx-')
-%plot([0, xc2', 1], [1, phi2', 1], 'rx-')
-%plot([0, xc2', 1], arrayfun(solution, [0, xc2', 1]), 'gx-')
-
-% Fehler
-figure;
-title('Fehler');
-hold on;
-plot([0, xc1', 1], [0, phi1', -2] - arrayfun(solution, [0, xc1', 1]), 'bx-')
-%plot([0, xc2', 1], [1, phi2', 1] - arrayfun(solution, [0, xc2', 1]), 'rx-')
-
-figure;
-phi1_exact = arrayfun(solution, xc1);
-residuum = (A1*phi1_exact - b1);
-title('Residuum');
-plot(xc1, residuum, 'x-')
-%end;
-
-%if 0
-%% Konvergenz prüfen
-%steps = 11;
-%i = 1:steps;
-%mean_error = delta_x = deal(zeros(steps, 1));
-
-%for j = i
-  %n = 2^j;
-  %[xc, phi, dx, A, b, TE] = diffusion1dlog(n, 1, 1, f, alpha);
-  %mean_error(j) = mean(abs(phi- arrayfun(solution, xc)));
-  %delta_x(j) = dx(1);
-%endfor;
-
-%figure;
-%%title('Fehlerkonvergenz');
-%%semilogy(i, mean_error, '.-.')
-%%xlabel('Anzahl der KV (2^i)')
-%%ylabel('Fehler')
-
-%p = log(mean_error(1:steps-1)./mean_error(2:steps))/log(2)
-
-%[haxes,hline1,hline2] = plotyy(1:11, mean_error, 1:10, p, 'semilogy', 'plot');
-%axes(haxes(1))
-%ylabel('Fehlerkonvergenz')
-%axes(haxes(2))
-%ylabel('Beobachteter Exponent')
-%end
