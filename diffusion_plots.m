@@ -1,21 +1,27 @@
-if 1
-% Lösung plotten
-alpha = 1e-0;
-f = @(x)-alpha*pi^2*sin(pi*x);
-solution = @(x)1+sin(pi*x);
-r0=1;
-rn=1;
+source('diffusion.m') % Funktionen einbinden
 
-%solution = @(x)-1+cos( pi*x);
-%f = @(x)-alpha*pi^2*cos(pi*x);
-%r0 = 0;
-%rn = -2;
+if 1
+
+% Parameter
+alpha = 1e-0;
+
+% Testfunktionen aus Manufactured Solution
+
+%f = @(x)-alpha*pi^2*sin(pi*x);
+%solution = @(x)1+sin(pi*x);
+%r0=1;
+%rn=1;
+
+solution = @(x)-1+cos( pi*x);
+f = @(x)-alpha*pi^2*cos(pi*x);
+r0 = 0;
+rn = -2;
 
 % Anzahl der KV
 n=20;
 % Plotting
 [xc1, phi1, dx1, A1, b1, TE1] = diffusion1d(n, r0, rn, f, alpha);
-[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, r0, rn, f, alpha);
+%[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, r0, rn, f, alpha);
 clf;
 figure;
 hold on;
@@ -28,7 +34,8 @@ plot([0, xc1', 1], [r0, phi1', rn], 'bx-')
 figure;
 title('Fehler');
 hold on;
-plot([0, xc1', 1], [r0, phi1', rn] - arrayfun(solution, [0, xc1', 1]), 'bx-')
+error =  [r0, phi1', rn] - arrayfun(solution, [0, xc1', 1]);
+plot([0, xc1', 1], error, 'bx-')
 %plot([0, xc2', 1], [r0, phi2', rn] - arrayfun(solution, [0, xc2', 1]), 'rx-')
 
 figure;
@@ -40,6 +47,7 @@ plot(residuum, 'x-')
 plot(TE1*n, 'rx')
 end;
 
+% Konvergenzprüfung
 if 0
 % Konvergenz prüfen
 %steps = 11;
