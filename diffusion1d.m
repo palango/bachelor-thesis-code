@@ -14,7 +14,7 @@ dx = x(2:n+1) - x(1:n);
 A = zeros(n);
 a = alpha / dx(1)^2;
 
-A = diag(same(-2*a, n)) + diag(same(a, n-1), 1) + diag(same(a, n-1), -1);
+A = diag(vse(-2*a, n)) + diag(vse(a, n-1), 1) + diag(vse(a, n-1), -1);
 
 % Quellterme in Mittelpunkten berechnen
 b = arrayfun(f, xc);
