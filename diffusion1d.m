@@ -33,21 +33,21 @@ phi = A\b_rb;
 
 % Truncation Error berechnen
 for i=3:n-2
-    TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
-            + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
-                    - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
-                  end;
+  TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
+        + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
+        - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
+end;
 
-                  % TE Sonderfälle für Randvolumen
-                  i=2;
-                  TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
-                        + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
-                              - ((phi(i+1)-3*phi(i)+4*phi(i-1)-2*f0)/(24*dx(1))); % TE_w
+% TE Sonderfälle für Randvolumen
+i=2;
+TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
+      + ((phi(i+2)-3*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
+      - ((phi(i+1)-3*phi(i)+4*phi(i-1)-2*f0)/(24*dx(1))); % TE_w
 
-                              i = n-1;
-                              TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
-                                    + ((2*fn-4*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
-                                          - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
+i = n-1;
+TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
+      + ((2*fn-4*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
+      - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
 
-                                          b= b_rb;
-                                        end%diffusion1d
+b= b_rb;
+end%diffusion1d
