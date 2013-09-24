@@ -3,10 +3,10 @@ clear all
 close all
 
 SOL=@(x) sin(pi*x)+1;
-MSOL=@(x)-pi^2*sin(pi*x);
+MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
 DIF=1.0;
 KONV=1.0;
-BETA=0.5
+BETA=0.5;
 XMIN=0.0;
 XMAX=1.0;
 
@@ -47,6 +47,19 @@ for I=1:N
   AW(I) = DIF/(DXW*DX);
 
   AP(I) = -AE(I)-AW(I);
+
+  DXeP = X(I+1)-XCR(I+1);
+  DXPw = XCR(I+1)-X(I);
+  AEK(I) = KONV/DX * DXeP/DXE;
+  AWK(I) = -KONV/DX * DXPw/DXW;
+
+  if I==1
+    APK(I) = AWK(I);
+  elseif I==N
+    APK(I) = AEK(I);
+  else
+    APK(I) = AWK(I)+AEK(I);
+  end
 end
 
 % Gesamtgleichungssystem aufstellen
@@ -57,20 +70,20 @@ for I=1:N
   b(I) = MSOL(XC(I));
 
   % Hauptdiagonale
-  A(I,I) = AP(I);
+  A(I,I) = AP(I) + APK(I);
 
   % Westliche Nebendiagonale
   if mod(I,N)==1
-    b(I) = b(I)-AW(I)*RBW;
+    b(I) = b(I) - AW(I)*RBW + AWK(I)*RBW;
   else
-    A(I, I-1) = AW(I);
+    A(I, I-1) = AW(I) + AWK(I);
   end
 
   % Östliche Nebendiagonale
   if mod(I,N)==0
-    b(I) = b(I)-AE(I)*RBE;
+    b(I) = b(I) - AE(I)*RBE - AEK(I)*RBE;
   else
-    A(I, I+1) = AE(I);
+    A(I, I+1) = AE(I) + AEK(I);
   end
 end
 
@@ -97,60 +110,60 @@ fprintf('Summierter Fehler %16.10e \n', SERR);
 
 
 %%% ORDNUNG  BESTIMMEN
-ERR5=2.3729365914e-02;
-ERR10=5.8445323862e-03;
-ERR20=1.4557255137e-03;
-ERR40=3.6359464498e-04;
-op=log((ERR5)/(ERR10))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-op=log((ERR10)/(ERR20))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-op=log((ERR20)/(ERR40))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+%ERR5=2.3729365914e-02;
+%ERR10=5.8445323862e-03;
+%ERR20=1.4557255137e-03;
+%ERR40=3.6359464498e-04;
+%op=log((ERR5)/(ERR10))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+%op=log((ERR10)/(ERR20))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+%op=log((ERR20)/(ERR40))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
-%%% RESIDUUM BERECHNEN
-t=zeros(N, 1);
-for I=1:N
-    t(I)=SOL(XC(I));
-end
+%%%% RESIDUUM BERECHNEN
+%t=zeros(N, 1);
+%for I=1:N
+    %t(I)=SOL(XC(I));
+%end
 
-RES=A*t-b;
+%RES=A*t-b;
 
-figure(4)
-plot(XC,RES,'x-');
+%figure(4)
+%plot(XC,RES,'x-');
 
-xlabel('XC')
-ylabel('RES')
-title('Residuum')
+%xlabel('XC')
+%ylabel('RES')
+%title('Residuum')
 
 %%% Truncation Error berechnen
 
 % b ohne Randwerte
-TE=zeros(1, N);
-for I=1:N
-  b(I) = MSOL(XC(I));
-end
+%TE=zeros(1, N);
+%for I=1:N
+  %b(I) = MSOL(XC(I));
+%end
 
-for I=3:N-2
-  DX = X(I+1)-X(I);
-  TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-        + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
-end;
+%for I=3:N-2
+  %DX = X(I+1)-X(I);
+  %TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+        %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+        %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+%end;
 
-% TE Sonderfälle für Randvolumen
-I=2;
-DX = X(I+1)-X(I);
-TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+%% TE Sonderfälle für Randvolumen
+%I=2;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
 
-I = N-1;
-DX = X(I+1)-X(I);
-TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+%I = N-1;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
 
-hold on;
-plot(XC, (N-1).*TE, 'rx-');
+%hold on;
+%plot(XC, (N-1).*TE, 'rx-');
