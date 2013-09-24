@@ -3,25 +3,25 @@ clear all
 close all
 
 SOL=@(x) sin(pi*x)+1;
-MSOL=@(x)-pi^2*sin(pi*x)
+MSOL=@(x)-pi^2*sin(pi*x);
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
 
-N=10; % KV's
+N=40; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
 XCR = [XMIN, XC, XMAX];
 
 %%% ANALYTISCHE LÖSUNG
-Z = zeros(1, N);
+TA = zeros(1, N);
 for I=1:N
-  Z(I)=SOL(XC(I));
+  TA(I)=SOL(XC(I));
 end
 
 figure(1)
-plot(XC, Z, 'x-');
+plot(XC, TA, 'x-');
 title('Analytische Loesung')
 
 %%% FVM Lösung
@@ -72,8 +72,76 @@ for I=1:N
   end
 end
 
-t=A\b;
+T=A\b;
 
 figure(2)
-plot(XC, t);
+plot(XC, T, 'x-');
 title('Numerische Loesung')
+
+%%% Lösungsfehler berechnen
+SERR=0.0;
+ERR=zeros(1, N);
+for I=1:N
+    ERR(I)=T(I)-TA(I);
+    SERR=SERR+ERR(I)^2;
+end
+SERR=sqrt(SERR/(N));
+
+figure(3)
+plot(XC, ERR, 'x-');
+title('Loesungsfehler')
+
+fprintf('Summierter Fehler %16.10e \n', SERR);
+
+
+%%% ORDNUNG  BESTIMMEN
+ERR5=2.3729365914e-02;
+ERR10=5.8445323862e-03;
+ERR20=1.4557255137e-03;
+ERR40=3.6359464498e-04;
+op=log((ERR5)/(ERR10))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR10)/(ERR20))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR20)/(ERR40))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+
+
+%%% RESIDUUM BERECHNEN
+t=zeros(N, 1);
+for I=1:N
+    t(I)=SOL(XC(I));
+end
+
+RES=A*t-b;
+
+figure(4)
+plot(XC,RES,'x-');
+
+xlabel('XC')
+ylabel('RES')
+title('Residuum')
+
+%%% Truncation Error berechnen
+for I=3:N-2
+  DX = X(I+1)-X(I);
+  TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+        + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+end;
+
+% TE Sonderfälle für Randvolumen
+%I=2;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+
+%I = N-1;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+
+hold on;
+plot(XC, (N-1).*[TE, 0, 0], 'rx-');
