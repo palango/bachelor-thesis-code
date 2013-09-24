@@ -1,8 +1,10 @@
 clc
 clear all
 close all
-SOL=@(x,y) sin(pi*x)*sin(pi*y);
-MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+%SOL=@(x,y) sin(pi*x)*sin(pi*y);
+%MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
+MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
@@ -29,14 +31,16 @@ end
 figure(1)
 surf(XC, YC, Z);
 title('Analytische Loesung')
+xlabel('X')
+ylabel('Y')
 
 %%% FVM Lösung
 
 % Randbedingungen
-RBS = zeros(1, N);
+for I=1:N RBS(I)=SOL(XC(I), 0); end
 for I=1:N RBN(I)=SOL(XC(I), 1); end
-for I=1:N RBE(I)=SOL(1, XC(I)); end
-RBW = zeros(1, N);
+for I=1:N RBE(I)=SOL(1, YC(I)); end
+for I=1:N RBW(I)=SOL(0, YC(I)); end
 
 % Koeffizienten speichern
 AP = zeros(N);
@@ -117,3 +121,5 @@ T2(2:N+1,2:N+1) = T;
 figure(2)
 surf(XC, YC, T);
 title('Numerische Loesung')
+xlabel('X')
+ylabel('Y')
