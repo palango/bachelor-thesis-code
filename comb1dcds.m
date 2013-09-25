@@ -10,7 +10,7 @@ BETA=0.5;
 XMIN=0.0;
 XMAX=1.0;
 
-N=20; % KV's
+N=40; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
@@ -48,18 +48,14 @@ for I=1:N
 
   AP(I) = -AE(I)-AW(I);
 
-  DXeP = X(I+1)-XCR(I+1);
-  DXPw = XCR(I+1)-X(I);
-  AEK(I) = KONV/DX * DXeP/DXE;
-  AWK(I) = -KONV/DX * DXPw/DXW;
+  DCDSE = (X(I+1)-XCR(I+1))/DXE;
+  DCDSW = (XCR(I+1)-X(I))/DXW;
 
-  if I==1
-    APK(I) = AWK(I);
-  elseif I==N
-    APK(I) = AEK(I);
-  else
-    APK(I) = AWK(I)+AEK(I);
-  end
+  AEK(I) = KONV/DX * DCDSE;
+  AWK(I) = -KONV/DX * DCDSW;
+
+  APK(I) = KONV/DX * ((1-DCDSE)-(1-DCDSW));
+  AK(I) = KONV/DX;
 end
 
 % Gesamtgleichungssystem aufstellen
@@ -74,14 +70,14 @@ for I=1:N
 
   % Westliche Nebendiagonale
   if mod(I,N)==1
-    b(I) = b(I) - AW(I)*RBW + AWK(I)*RBW;
+    b(I) = b(I) - AW(I)*RBW + AK(I)*RBW;
   else
     A(I, I-1) = AW(I) + AWK(I);
   end
 
   % Östliche Nebendiagonale
   if mod(I,N)==0
-    b(I) = b(I) - AE(I)*RBE - AEK(I)*RBE;
+    b(I) = b(I) - AE(I)*RBE - AK(I)*RBE;
   else
     A(I, I+1) = AE(I) + AEK(I);
   end
@@ -106,20 +102,20 @@ figure(3)
 plot(XC, ERR, 'x-');
 title('Loesungsfehler')
 
-fprintf('Summierter Fehler %16.10e \n', SERR);
+fprintf('Summierter Fehler %16.10e N=%g\n', SERR, N);
 
 
 %%% ORDNUNG  BESTIMMEN
-%ERR5=2.3729365914e-02;
-%ERR10=5.8445323862e-03;
-%ERR20=1.4557255137e-03;
-%ERR40=3.6359464498e-04;
-%op=log((ERR5)/(ERR10))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR10)/(ERR20))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR20)/(ERR40))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+ERR5=2.4182329465e-02;
+ERR10=5.9638142082e-03;
+ERR20=1.4859620816e-03;
+ERR40=3.7118037236e-04;
+op=log((ERR5)/(ERR10))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR10)/(ERR20))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR20)/(ERR40))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
 %%%% RESIDUUM BERECHNEN
