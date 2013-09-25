@@ -2,8 +2,12 @@ clc
 clear all
 close all
 
-SOL=@(x) sin(pi*x)+1;
-MSOL=@(x)-pi^2*sin(pi*x);
+%SOL=@(x) sin(pi*x)+1;
+%MSOL=@(x)-pi^2*sin(pi*x);
+
+SOL=@(x) cos(pi*x)-1;
+MSOL=@(x)-pi^2*cos(pi*x);
+
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
