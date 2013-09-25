@@ -5,18 +5,18 @@ alpha = 1e-0;
 
 % Testfunktionen aus Manufactured Solution
 
-%f = @(x)-alpha*pi^2*sin(pi*x);
-%solution = @(x)1+sin(pi*x);
-%r0=1;
-%rn=1;
+f = @(x)-alpha*pi^2*sin(pi*x);
+solution = @(x)1+sin(pi*x);
+r0=1;
+rn=1;
 
-solution = @(x)-1+cos( pi*x);
-f = @(x)-alpha*pi^2*cos(pi*x);
-r0 = 0;
-rn = -2;
+%solution = @(x)-1+cos( pi*x);
+%f = @(x)-alpha*pi^2*cos(pi*x);
+%r0 = 0;
+%rn = -2;
 
 % Anzahl der KV
-n=20;
+n=10;
 % Plotting
 [xc1, phi1, dx1, A1, b1, TE1] = diffusion1d(n, r0, rn, f, alpha);
 %[xc2, phi2, dx2, A2, b2] = diffusion1dlog(n, r0, rn, f, alpha);
@@ -38,6 +38,7 @@ plot([0, xc1', 1], error, 'bx-')
 
 figure;
 phi1_exact = arrayfun(solution, xc1);
+b1
 residuum = (A1*phi1_exact - b1);
 title('Residuum');
 hold on;

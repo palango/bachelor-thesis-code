@@ -69,10 +69,9 @@ title('Analytische Loesung cos(pi*x)-1.0')
 %%% DISKRETISIERUNG IM INNEREN DES GEBIETES
 for i=2:N-1
     DXPE=XC(i+1)-XC(i);
-    %DXWP=XC(i)-XC(i-1);
     DXC=X(i+1)-X(i);
-    AE(i)=DIF/(DXPE*DXC);
-    AW(i+1)=DIF/(DXPE*DXC);
+    AE(i)=DIF/(DXPE*DXC)+KONV/(2*DXC);
+    AW(i+1)=DIF/(DXPE*DXC)-KONV/(2*DXC);
 end
 
 for i=2:N

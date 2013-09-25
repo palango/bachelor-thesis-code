@@ -17,7 +17,7 @@ a = alpha / dx(1)^2;
 A = diag(vse(-2*a, n)) + diag(vse(a, n-1), 1) + diag(vse(a, n-1), -1);
 
 % Quellterme in Mittelpunkten berechnen
-b = arrayfun(f, xc);
+b = arrayfun(f, xc)
 
 % Randbedingungen in A
 A(1, 1) = -3*a;
@@ -48,6 +48,6 @@ i = n-1;
 TE(i) = (dx(1)/24 * (b(i+1) - 2*b(i) + b(i-1)))... % TE_source
       + ((2*fn-4*phi(i+1)+3*phi(i)-phi(i-1))/(24*dx(1)))... % TE_e
       - ((phi(i+1)-3*phi(i)+3*phi(i-1)-phi(i-2))/(24*dx(1))); % TE_w
-
+[b_rb, b]
 b= b_rb;
 end%diffusion1d
