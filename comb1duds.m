@@ -2,15 +2,19 @@ clc
 clear all
 close all
 
-SOL=@(x) sin(pi*x)+1;
-MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
+%SOL=@(x) sin(pi*x)+1;
+%MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
+
+SOL=@(x) cos(pi*x)-1;
+MSOL=@(x) -pi*sin(pi*x)-pi^2*cos(pi*x);
+
 DIF=1.0;
 KONV=1.0;
-BETA=0.5;
+BETA=1.0;
 XMIN=0.0;
 XMAX=1.0;
 
-N=20; % KV's
+N=80; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
@@ -50,16 +54,17 @@ for I=1:N
 
   DXeP = X(I+1)-XCR(I+1);
   DXPw = XCR(I+1)-X(I);
-  AEK(I) = KONV/DX * DXeP/DXE;
-  AWK(I) = -KONV/DX * DXPw/DXW;
+  AEK(I) = 0;
+  AWK(I) = -KONV/DX;
+  APK(I) = KONV/DX;
 
-  if I==1
-    APK(I) = AWK(I);
-  elseif I==N
-    APK(I) = AEK(I);
-  else
-    APK(I) = AWK(I)+AEK(I);
-  end
+  %if I==1
+    %APK(I) = AWK(I);
+  %elseif I==N
+    %APK(I) = AEK(I);
+  %else
+    %APK(I) = -AWK(I)-AEK(I);
+  %end
 end
 
 % Gesamtgleichungssystem aufstellen
@@ -74,14 +79,15 @@ for I=1:N
 
   % Westliche Nebendiagonale
   if mod(I,N)==1
-    b(I) = b(I) - AW(I)*RBW + AWK(I)*RBW;
+    b(I) = b(I) - AW(I)*RBW - AWK(I)*RBW;
   else
     A(I, I-1) = AW(I) + AWK(I);
   end
 
   % Östliche Nebendiagonale
   if mod(I,N)==0
-    b(I) = b(I) - AE(I)*RBE - AEK(I)*RBE;
+    b(I) = b(I) - AE(I)*RBE - APK(I)*RBE;
+    A(I, I) = AP(I);
   else
     A(I, I+1) = AE(I) + AEK(I);
   end
@@ -106,20 +112,23 @@ figure(3)
 plot(XC, ERR, 'x-');
 title('Loesungsfehler')
 
-fprintf('Summierter Fehler %16.10e \n', SERR);
+fprintf('Summierter Fehler %16.10e N=%g\n', SERR, N);
 
 
 %%% ORDNUNG  BESTIMMEN
-%ERR5=2.3729365914e-02;
-%ERR10=5.8445323862e-03;
-%ERR20=1.4557255137e-03;
-%ERR40=3.6359464498e-04;
-%op=log((ERR5)/(ERR10))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR10)/(ERR20))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR20)/(ERR40))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+ERR5=5.2157765345e-02;
+ERR10=1.5921468105e-02;
+ERR20=5.7630383054e-03;
+ERR40=2.3777712061e-03;
+ERR80=1.0699864289e-03;
+op=log((ERR5)/(ERR10))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR10)/(ERR20))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR20)/(ERR40))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR40)/(ERR80))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
 %%%% RESIDUUM BERECHNEN
