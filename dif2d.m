@@ -10,7 +10,7 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=10; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -161,7 +161,7 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 s=zeros(N);
 for I=1:N
   for J=1:N
-    s(I)=SOL(XC(I), YC(J));
+    s(I, J)=SOL(XC(I), YC(J));
   end
 end
 
@@ -169,18 +169,56 @@ s=reshape(s, NN, 1);
 
 RES=A*s-b;
 
+RES2 = reshape(RES, N, N);
+
 figure(4)
-surf(XC, YC, reshape(RES, N, N));
+surf(XC, YC, RES2);
 
 xlabel('XC')
 ylabel('YC')
 zlabel('RES')
 title('Residuum')
 
-%b = zeros (1, N*N);
-%for J=1:N
-  %for I=1:N
-    %IDX = (J-1)*N + I;
-    %b(IDX) = A(I,J);
-  %end
-%end
+%%% Truncation Error berechnen
+
+% b ohne Randwerte
+TE=zeros(N);
+b=zeros(N);
+for I=1:N
+  for J=1:N
+    b(I,J) = MSOL(XC(I), YC(J));
+  end
+end
+
+for I=3:N-2
+  for J=3:N-2
+    TE(I,J)=1;
+    DX = X(I+1)-X(I);
+    DY = Y(J+1)-Y(J);
+    TE(I,J) = ((DX*DY)/24 * (b(I+1,J)+b(I-1,J)+b(I,J+1)+b(I,J-1)-4*b(I,J)))... % TE_source
+            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))... % TE_e
+            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))... % TE_w
+            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))... % TE_n
+            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY)); % TE_s
+    TE(I,J) = TE(I,J)/(DX*DY); % Division durch Terme bei Quellterm
+  end
+end
+
+% TE Sonderfälle für Randvolumen
+%I=2;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+%TE(I) = TE(I)/DX;
+
+%I = N-1;
+%DX = X(I+1)-X(I);
+%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+%TE(I) = TE(I)/DX;
+
+figure(5)
+
+surf(XC, YC, TE);
