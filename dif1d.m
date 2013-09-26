@@ -2,17 +2,17 @@ clc
 clear all
 close all
 
-%SOL=@(x) sin(pi*x)+1;
-%MSOL=@(x)-pi^2*sin(pi*x);
+SOL=@(x) sin(pi*x)+1;
+MSOL=@(x)-pi^2*sin(pi*x);
 
-SOL=@(x) cos(pi*x)-1;
-MSOL=@(x)-pi^2*cos(pi*x);
+%SOL=@(x) cos(pi*x)-1;
+%MSOL=@(x)-pi^2*cos(pi*x);
 
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
 
-N=40; % KV's
+N=20; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
@@ -159,3 +159,7 @@ TE(I) = TE(I)/DX;
 
 hold on;
 plot(XC, TE, 'rx-');
+
+figure(5)
+plot(XC, RES-TE', 'x-');
+title('RES - TE')
