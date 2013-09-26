@@ -1,16 +1,16 @@
 clc
 clear all
 close all
-%SOL=@(x,y) sin(pi*x)*sin(pi*y);
-%MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
-SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
-MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
+SOL=@(x,y) sin(pi*x)*sin(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+%SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
+%MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -21,15 +21,15 @@ XCR = [XMIN, XC, XMAX];
 YCR = [YMIN, YC, YMAX];
 
 %%% ANALYTISCHE LÖSUNG
-Z = zeros(N, N);
+TA = zeros(N, N);
 for I=1:N
   for J=1:N
-    Z(I, J)=SOL(XC(I), YC(J));
+    TA(I, J)=SOL(XC(I), YC(J));
   end
 end
 
 figure(1)
-surf(XC, YC, Z);
+surf(XC, YC, TA);
 title('Analytische Loesung')
 xlabel('X')
 ylabel('Y')
@@ -71,6 +71,7 @@ end
 
 % Gesamtgleichungssystem aufstellen
 A = zeros(NN);
+b = zeros(NN, 1);
 
 for J=1:N
   for I=1:N
@@ -111,7 +112,7 @@ for J=1:N
   end
 end
 
-t=A\b';
+t=A\b;
 T=reshape(t,N,N);
 
 % mit Randwerten
@@ -123,3 +124,63 @@ surf(XC, YC, T);
 title('Numerische Loesung')
 xlabel('X')
 ylabel('Y')
+
+
+%%% Lösungsfehler berechnen
+SERR=0.0;
+ERR=zeros(N);
+for I=1:N
+  for J=1:N
+    ERR(I,J)=T(I, J)-TA(I, J);
+    SERR=SERR+ERR(I,J)^2;
+  end
+end
+SERR=sqrt(SERR/NN);
+
+figure(3)
+surf(XC, YC, ERR);
+title('Loesungsfehler')
+
+fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
+
+%%% ORDNUNG  BESTIMMEN
+ERR5=1.6779195551e-02;
+ERR10=4.1327084831e-03;
+ERR20=1.0293533823e-03;
+ERR40=2.5710023908e-04;
+op=log((ERR5)/(ERR10))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR10)/(ERR20))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR20)/(ERR40))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+
+
+
+%%% RESIDUUM BERECHNEN
+s=zeros(N);
+for I=1:N
+  for J=1:N
+    s(I)=SOL(XC(I), YC(J));
+  end
+end
+
+s=reshape(s, NN, 1);
+
+RES=A*s-b;
+
+figure(4)
+surf(XC, YC, reshape(RES, N, N));
+
+xlabel('XC')
+ylabel('YC')
+zlabel('RES')
+title('Residuum')
+
+%b = zeros (1, N*N);
+%for J=1:N
+  %for I=1:N
+    %IDX = (J-1)*N + I;
+    %b(IDX) = A(I,J);
+  %end
+%end
