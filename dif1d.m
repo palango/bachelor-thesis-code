@@ -139,6 +139,7 @@ for I=3:N-2
   TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
         + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
         - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+  TE(I) = TE(I)/DX; % Division durch Terme bei Quellterm
 end;
 
 % TE Sonderfälle für Randvolumen
@@ -147,12 +148,14 @@ DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+TE(I) = TE(I)/DX;
 
 I = N-1;
 DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+TE(I) = TE(I)/DX;
 
 hold on;
-plot(XC, (N-1).*TE, 'rx-');
+plot(XC, TE, 'rx-');
