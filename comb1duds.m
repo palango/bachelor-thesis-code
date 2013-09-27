@@ -158,7 +158,9 @@ for I=3:N-2
   DX = X(I+1)-X(I);
   TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
         + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
+        - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+        + (3/8*T(I) - T(I-1)/4 - T(I-2)/8); % TE_uds_w
   TE(I) = TE(I)/DX;
 end;
 
@@ -167,15 +169,26 @@ I=2;
 DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+      - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX))... % TE_w
+      - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+      + (3/8*T(I) + T(I-1)/8 - RBW/2); % TE_uds_w_rand
   TE(I) = TE(I)/DX;
 
 I = N-1;
 DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+      - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
+      - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+      + (3/8*T(I) - T(I-1)/4 - T(I-2)/8); % TE_uds_w
   TE(I) = TE(I)/DX;
 
 hold on;
 plot(XC, TE, 'rx-');
+
+RESTE = RES-TE';
+
+figure(5)
+plot(XC(2:N-1), RESTE(2:N-1), 'x-')
+xlabel('XC')
+ylabel('RES-TE')
