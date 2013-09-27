@@ -10,7 +10,7 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=10; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -196,10 +196,10 @@ for I=3:N-2
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
     TE(I,J) = ((DX*DY)/24 * (b(I+1,J)+b(I-1,J)+b(I,J+1)+b(I,J-1)-4*b(I,J)))... % TE_source
-            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))... % TE_e
-            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))... % TE_w
-            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))... % TE_n
-            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY)); % TE_s
+            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))*DY... % TE_e
+            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))*DY... % TE_w
+            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))*DX... % TE_n
+            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY))*DX; % TE_s
     TE(I,J) = TE(I,J)/(DX*DY); % Division durch Terme bei Quellterm
   end
 end
@@ -222,3 +222,10 @@ end
 figure(5)
 
 surf(XC, YC, TE);
+title('TE');
+
+
+RESTE = RES2-TE;
+figure(6)
+surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2));
+title('RES-TE');
