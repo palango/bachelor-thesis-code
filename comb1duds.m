@@ -14,7 +14,7 @@ BETA=1.0;
 XMIN=0.0;
 XMAX=1.0;
 
-N=80; % KV's
+N=20; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
@@ -132,47 +132,50 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
 %%%% RESIDUUM BERECHNEN
-%t=zeros(N, 1);
-%for I=1:N
-    %t(I)=SOL(XC(I));
-%end
+t=zeros(N, 1);
+for I=1:N
+    t(I)=SOL(XC(I));
+end
 
-%RES=A*t-b;
+RES=A*t-b;
 
-%figure(4)
-%plot(XC,RES,'x-');
+figure(4)
+plot(XC,RES,'x-');
 
-%xlabel('XC')
-%ylabel('RES')
-%title('Residuum')
+xlabel('XC')
+ylabel('RES')
+title('Residuum')
 
 %%% Truncation Error berechnen
 
 % b ohne Randwerte
-%TE=zeros(1, N);
-%for I=1:N
-  %b(I) = MSOL(XC(I));
-%end
+TE=zeros(1, N);
+for I=1:N
+  b(I) = MSOL(XC(I));
+end
 
-%for I=3:N-2
-  %DX = X(I+1)-X(I);
-  %TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-        %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-        %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
-%end;
+for I=3:N-2
+  DX = X(I+1)-X(I);
+  TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+        + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+  TE(I) = TE(I)/DX;
+end;
 
-%% TE Sonderfälle für Randvolumen
-%I=2;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+% TE Sonderfälle für Randvolumen
+I=2;
+DX = X(I+1)-X(I);
+TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+  TE(I) = TE(I)/DX;
 
-%I = N-1;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+I = N-1;
+DX = X(I+1)-X(I);
+TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+  TE(I) = TE(I)/DX;
 
-%hold on;
-%plot(XC, (N-1).*TE, 'rx-');
+hold on;
+plot(XC, TE, 'rx-');

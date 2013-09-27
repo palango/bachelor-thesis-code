@@ -118,20 +118,20 @@ op=log((ERR20)/(ERR40))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
-%%%% RESIDUUM BERECHNEN
-%t=zeros(N, 1);
-%for I=1:N
-    %t(I)=SOL(XC(I));
-%end
+%%% RESIDUUM BERECHNEN
+t=zeros(N, 1);
+for I=1:N
+    t(I)=SOL(XC(I));
+end
 
-%RES=A*t-b;
+RES=A*t-b;
 
-%figure(4)
-%plot(XC,RES,'x-');
+figure(4)
+plot(XC,RES,'x-');
 
-%xlabel('XC')
-%ylabel('RES')
-%title('Residuum')
+xlabel('XC')
+ylabel('RES')
+title('Residuum')
 
 %%% Truncation Error berechnen
 
