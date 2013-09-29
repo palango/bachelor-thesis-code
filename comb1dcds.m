@@ -150,27 +150,35 @@ for I=3:N-2
   TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
         + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
         - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
-        + (T(I+1)-2*T(I)+T(I-1))/8 ...
-        + (T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32 ...
+        + (T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+        + (T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32 ... % TE_e_cds
         - (T(I+1)-2*T(I)+T(I-1))/8 ...
         + (T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32;
   TE(I) = TE(I)/DX;
 end;
 
 % TE Sonderfälle für Randvolumen
-%I=2;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
-  %TE(I) = TE(I)/DX;
+I=2;
+DX = X(I+1)-X(I);
+TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)) ...
+      + (T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+      + (T(I+2)-2*T(I+1)+2*T(I-1)-2*RBW)/32 ... % TE_e_cds
+      - (T(I+1)-2*T(I)+T(I-1))/8 ...
+      + (T(I+2)-2*T(I+1)+3*T(I-1)-2*RBW)/32;
+TE(I) = TE(I)/DX;
 
-%I = N-1;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
-  %TE(I) = TE(I)/DX;
+I = N-1;
+DX = X(I+1)-X(I);
+TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
+      + (T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+      + (2*RBE-3*T(I+1)+2*T(I-1)-T(I-2))/32 ... % TE_e_cds
+      - (T(I+1)-2*T(I)+T(I-1))/8 ...
+      + (2*RBE-3*T(I+1)+2*T(I-1)-T(I-2))/32;
+TE(I) = TE(I)/DX;
 
 hold on;
 plot(XC, TE, 'rx-');
