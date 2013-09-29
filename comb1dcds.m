@@ -2,8 +2,12 @@ clc
 clear all
 close all
 
-SOL=@(x) sin(pi*x)+1;
-MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
+%SOL=@(x) sin(pi*x)+1;
+%MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
+
+SOL=@(x) cos(pi*x)-1;
+MSOL=@(x) -pi*sin(pi*x)-pi^2*cos(pi*x);
+
 DIF=1.0;
 KONV=1.0;
 BETA=0.5;
@@ -136,30 +140,44 @@ title('Residuum')
 %%% Truncation Error berechnen
 
 % b ohne Randwerte
-%TE=zeros(1, N);
-%for I=1:N
-  %b(I) = MSOL(XC(I));
-%end
+TE=zeros(1, N);
+for I=1:N
+  b(I) = MSOL(XC(I));
+end
 
-%for I=3:N-2
-  %DX = X(I+1)-X(I);
-  %TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-        %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-        %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
-%end;
+for I=3:N-2
+  DX = X(I+1)-X(I);
+  TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+        + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+        - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
+        + (T(I+1)-2*T(I)+T(I-1))/8 ...
+        + (T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32 ...
+        - (T(I+1)-2*T(I)+T(I-1))/8 ...
+        + (T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32;
+  TE(I) = TE(I)/DX;
+end;
 
-%% TE Sonderfälle für Randvolumen
+% TE Sonderfälle für Randvolumen
 %I=2;
 %DX = X(I+1)-X(I);
 %TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+  %TE(I) = TE(I)/DX;
 
 %I = N-1;
 %DX = X(I+1)-X(I);
 %TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+  %TE(I) = TE(I)/DX;
 
-%hold on;
-%plot(XC, (N-1).*TE, 'rx-');
+hold on;
+plot(XC, TE, 'rx-');
+
+RESTE = RES-TE';
+
+figure(5)
+plot(XC(3:N-2), RESTE(3:N-2), 'x-')
+xlabel('XC')
+ylabel('RES-TE')
