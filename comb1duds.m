@@ -14,7 +14,7 @@ BETA=1.0;
 XMIN=0.0;
 XMAX=1.0;
 
-N=20; % KV's
+N=10; % KV's
 
 X = linspace(XMIN, XMAX, N+1);
 XC = (X(1:N)+X(2:N+1))/2;
@@ -57,14 +57,6 @@ for I=1:N
   AEK(I) = 0;
   AWK(I) = -KONV/DX;
   APK(I) = KONV/DX;
-
-  %if I==1
-    %APK(I) = AWK(I);
-  %elseif I==N
-    %APK(I) = AEK(I);
-  %else
-    %APK(I) = -AWK(I)-AEK(I);
-  %end
 end
 
 % Gesamtgleichungssystem aufstellen
@@ -87,7 +79,7 @@ for I=1:N
   % Östliche Nebendiagonale
   if mod(I,N)==0
     b(I) = b(I) - AE(I)*RBE - APK(I)*RBE;
-    A(I, I) = AP(I);
+    A(I, I) = AP(I); % a_P_uds is 0 in this case
   else
     A(I, I+1) = AE(I) + AEK(I);
   end
