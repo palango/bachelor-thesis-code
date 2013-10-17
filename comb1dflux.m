@@ -10,7 +10,7 @@ MSOL=@(x) pi*cos(pi*x)-pi^2*sin(pi*x);
 
 DIF=1.0;
 KONV=1.0;
-BETA=1.0;
+BETA=0.5;
 XMIN=0.0;
 XMAX=1.0;
 
@@ -163,8 +163,13 @@ for I=3:N-2
   TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
         + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
         - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
-        - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
-        + (3/8*T(I) - T(I-1)/4 - T(I-2)/8); % TE_uds_w
+        - (1-BETA)*(3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+        + (1-BETA)*(3/8*T(I) - T(I-1)/4 - T(I-2)/8)... % TE_uds_w
+        + BETA*(T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+        + BETA*(T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32 ... % TE_e_cds
+        - BETA*(T(I+1)-2*T(I)+T(I-1))/8 ...
+        + BETA*(T(I+2)-2*T(I+1)+2*T(I-1)-T(I-2))/32;
+
   TE(I) = TE(I)/DX;
 end;
 
@@ -174,8 +179,12 @@ DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       - ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX))... % TE_w
-      - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
-      + (3/8*T(I) + T(I-1)/8 - RBW/2); % TE_uds_w_rand
+      - (1-BETA)*(3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+      + (1-BETA)*(3/8*T(I) + T(I-1)/8 - RBW/2); % TE_uds_w_rand
+      + BETA*(T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+      + BETA*(T(I+2)-2*T(I+1)+2*T(I-1)-2*RBW)/32 ... % TE_e_cds
+      - BETA*(T(I+1)-2*T(I)+T(I-1))/8 ...
+      + BETA*(T(I+2)-2*T(I+1)+3*T(I-1)-2*RBW)/32;
   TE(I) = TE(I)/DX;
 
 I = N-1;
@@ -183,8 +192,13 @@ DX = X(I+1)-X(I);
 TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
       + ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
       - ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX))... % TE_w
-      - (3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
-      + (3/8*T(I) - T(I-1)/4 - T(I-2)/8); % TE_uds_w
+      - (1-BETA)*(3/8*T(I+1) - T(I)/4 - T(I-1)/8)... % TE_uds_e
+      + (1-BETA)*(3/8*T(I) - T(I-1)/4 - T(I-2)/8); % TE_uds_w
+      + BETA*(T(I+1)-2*T(I)+T(I-1))/8 ... % TE_e_cds
+      + BETA*(2*RBE-3*T(I+1)+2*T(I-1)-T(I-2))/32 ... % TE_e_cds
+      - BETA*(T(I+1)-2*T(I)+T(I-1))/8 ...
+      + BETA*(2*RBE-3*T(I+1)+2*T(I-1)-T(I-2))/32;
+
   TE(I) = TE(I)/DX;
 
 hold on;
@@ -193,7 +207,7 @@ plot(XC, TE, 'rx-');
 RESTE = RES-TE';
 
 figure(5)
-plot(XC(2:N-1), RESTE(2:N-1), 'x-')
+plot(XC(3:N-2), RESTE(3:N-2), 'x-')
 xlabel('XC')
 ylabel('RES-TE')
 
