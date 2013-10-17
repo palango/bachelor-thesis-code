@@ -10,7 +10,7 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -60,10 +60,10 @@ for I=1:N
     DYN = YCR(J+2)-YCR(J+1);
     DYS = YCR(J+1)-YCR(J);
 
-    AE(I,J) = DIF/(DXE*DX);
-    AW(I,J) = DIF/(DXW*DX);
-    AN(I,J) = DIF/(DYN*DY);
-    AS(I,J) = DIF/(DYS*DY);
+    AE(I,J) = DIF*DY/DXE;
+    AW(I,J) = DIF*DY/DXW;
+    AN(I,J) = DIF*DX/DYN;
+    AS(I,J) = DIF*DX/DYS;
 
     AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
   end
@@ -77,7 +77,9 @@ for J=1:N
   for I=1:N
     IDX = (J-1)*N + I;
 
-    b(IDX) = MSOL(XC(I),YC(J));
+    DX = X(I+1)-X(I);
+    DY = Y(J+1)-Y(J);
+    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
 
     % Hauptdiagonale
     A(IDX, IDX) = AP(I,J);
@@ -186,7 +188,9 @@ TE=zeros(N);
 b=zeros(N);
 for I=1:N
   for J=1:N
-    b(I,J) = MSOL(XC(I), YC(J));
+    DX = X(I+1)-X(I);
+    DY = Y(J+1)-Y(J);
+    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
   end
 end
 
@@ -196,11 +200,10 @@ for I=3:N-2
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
     TE(I,J) = ((DX*DY)/24 * (b(I+1,J)+b(I-1,J)+b(I,J+1)+b(I,J-1)-4*b(I,J)))... % TE_source
-            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))*DY... % TE_e
-            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))*DY... % TE_w
-            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))*DX... % TE_n
-            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY))*DX; % TE_s
-    TE(I,J) = TE(I,J)/(DX*DY); % Division durch Terme bei Quellterm
+            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))... % TE_e
+            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))... % TE_w
+            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))... % TE_n
+            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY)); % TE_s
   end
 end
 
