@@ -14,12 +14,30 @@ ALPHA=0.9;
 XMIN=0.0;
 XMAX=1.0;
 
-N=50; % KV's
+N=40; % KV's
 
 X = zeros(1,N+1);
 for I=1:N+1
   X(I) = XMIN + (ALPHA^(I-1)-1)/(ALPHA^N-1)*(XMAX-XMIN);
 end
+
+% N halbieren
+for j=1:1
+  fprintf('abc');
+
+idx =1;
+X2=0;
+for i=1:N+1
+  if mod(i, 2)==1
+    X2(idx)=X(i);
+    idx=idx+1;
+  end
+end
+X=X2;
+N=length(X)-1;
+end
+
+
 XC = (X(1:N)+X(2:N+1))/2;
 XCR = [XMIN, XC, XMAX];
 
@@ -113,10 +131,10 @@ fprintf('Summierter Fehler %16.10e N=%g\n', SERR, N);
 
 
 %%% ORDNUNG  BESTIMMEN
-ERR5=2.4182329465e-02;
-ERR10=5.9638142082e-03;
-ERR20=1.4859620816e-03;
-ERR40=3.7118037236e-04;
+ERR5=1.2662511400e-01;
+ERR10=1.9068695077e-02;
+ERR20=4.0741696509e-03;
+ERR40=9.9564249986e-04;
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);

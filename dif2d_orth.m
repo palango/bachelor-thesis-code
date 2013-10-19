@@ -20,10 +20,40 @@ X = zeros(1,N+1);
 for I=1:N+1
   X(I) = XMIN + (ALPHAX^(I-1)-1)/(ALPHAX^N-1)*(XMAX-XMIN);
 end
+
 Y = zeros(1,N+1);
 for I=1:N+1
   Y(I) = YMIN + (ALPHAY^(I-1)-1)/(ALPHAY^N-1)*(YMAX-YMIN);
 end
+
+%NDIVS = 3;
+%% N halbieren
+%for j=1:NDIVS
+%idx =1;
+%X2=0;
+%for i=1:length(X)+1
+  %if mod(i, 2)==1
+    %X2(idx)=X(i);
+    %idx=idx+1;
+  %end
+%end
+%X=X2;
+%N=length(X)-1;
+%end
+
+%for j=1:NDIVS
+%idx =1;
+%Y2=0;
+%for i=1:length(Y)+1
+  %if mod(i, 2)==1
+    %Y2(idx)=Y(i);
+    %idx=idx+1;
+  %end
+%end
+%Y=Y2;
+%N=length(Y)-1;
+%end
+%NN=N*N;
 
 XC = (X(1:N)+X(2:N+1))/2;
 YC = (Y(1:N)+Y(2:N+1))/2;
@@ -156,10 +186,10 @@ title('Loesungsfehler')
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%% ORDNUNG  BESTIMMEN
-ERR5=1.6779195551e-02;
-ERR10=4.1327084831e-03;
-ERR20=1.0293533823e-03;
-ERR40=2.5710023908e-04;
+ERR5=6.5277704659e-02;
+ERR10=1.0773515741e-02;
+ERR20=2.2555829695e-03;
+ERR40=5.4229194964e-04;
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);
