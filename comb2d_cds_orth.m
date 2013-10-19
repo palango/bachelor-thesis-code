@@ -26,6 +26,35 @@ for I=1:N+1
   Y(I) = YMIN + (ALPHAY^(I-1)-1)/(ALPHAY^N-1)*(YMAX-YMIN);
 end
 
+%NDIVS = 3;
+%% N halbieren
+%for j=1:NDIVS
+%idx =1;
+%X2=0;
+%for i=1:length(X)+1
+  %if mod(i, 2)==1
+    %X2(idx)=X(i);
+    %idx=idx+1;
+  %end
+%end
+%X=X2;
+%N=length(X)-1;
+%end
+
+%for j=1:NDIVS
+%idx =1;
+%Y2=0;
+%for i=1:length(Y)+1
+  %if mod(i, 2)==1
+    %Y2(idx)=Y(i);
+    %idx=idx+1;
+  %end
+%end
+%Y=Y2;
+%N=length(Y)-1;
+%end
+%NN=N*N;
+
 XC = (X(1:N)+X(2:N+1))/2;
 YC = (Y(1:N)+Y(2:N+1))/2;
 XCR = [XMIN, XC, XMAX];
@@ -298,13 +327,13 @@ for I=3:N-2
       + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
       * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
 
-  TERRKN = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
-      + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
-      * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+  TERRKN = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Yn-YN)*(Yn-YP)...
+      + 1/6*(Yn-YP)/DY*((Yn-YP)^2-(YN-YP)^2)...
+      * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
 
-  TERRKS = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
-      + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
-      * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+  TERRKS = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Ys-YS)*(Ys-YP)...
+      + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
+      * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
 
     TERR(I,J) = TERRSO - TERRE + TERRW - TERRN + TERRS;
   end
