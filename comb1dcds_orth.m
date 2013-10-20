@@ -23,8 +23,6 @@ end
 
 % N halbieren
 for j=1:1
-  fprintf('abc');
-
 idx =1;
 X2=0;
 for i=1:N+1

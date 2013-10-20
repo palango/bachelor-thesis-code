@@ -1,10 +1,10 @@
 clc
 clear all
 close all
-SOL=@(x,y) sin(pi*x)*sin(pi*y);
-MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
-%SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
-%MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
+%SOL=@(x,y) sin(pi*x)*sin(pi*y);
+%MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
+MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
@@ -69,7 +69,7 @@ for I=1:N
 end
 
 figure(1)
-surf(XC, YC, TA);
+surf(XC, YC, TA');
 title('Analytische Loesung')
 xlabel('X')
 ylabel('Y')
@@ -162,7 +162,7 @@ T2 = zeros(N+2);
 T2(2:N+1,2:N+1) = T;
 
 figure(2)
-surf(XC, YC, T);
+surf(XC, YC, T');
 title('Numerische Loesung')
 xlabel('X')
 ylabel('Y')
@@ -180,7 +180,7 @@ end
 SERR=sqrt(SERR/NN);
 
 figure(3)
-surf(XC, YC, ERR);
+surf(XC, YC, ERR');
 title('Loesungsfehler')
 
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
@@ -214,7 +214,7 @@ RES=A*s-b;
 RES2 = reshape(RES, N, N);
 
 figure(4)
-surf(XC, YC, RES2);
+surf(XC, YC, RES2');
 
 xlabel('XC')
 ylabel('YC')
@@ -230,7 +230,7 @@ for I=1:N
   for J=1:N
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
-    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
+    b(I,J) = MSOL(XC(I),YC(J))*DX*DY;
   end
 end
 
@@ -313,11 +313,11 @@ end
 
 figure(5)
 
-surf(XC, YC, TERR);
+surf(XC, YC, TERR');
 title('TE');
 
 
 RESTE = RES2-TERR;
 figure(6)
-surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2));
+surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2)');
 title('RES-TE');

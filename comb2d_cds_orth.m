@@ -2,7 +2,7 @@ clc
 clear all
 close all
 SOL=@(x,y) sin(pi*x)*sin(pi*y);
-MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
 %SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
 %MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
@@ -26,8 +26,8 @@ for I=1:N+1
   Y(I) = YMIN + (ALPHAY^(I-1)-1)/(ALPHAY^N-1)*(YMAX-YMIN);
 end
 
-%NDIVS = 3;
-%% N halbieren
+NDIVS = 3;
+% N halbieren
 %for j=1:NDIVS
 %idx =1;
 %X2=0;
@@ -69,7 +69,7 @@ for I=1:N
 end
 
 figure(1)
-surf(XC, YC, TA);
+surf(XC, YC, TA');
 title('Analytische Loesung')
 xlabel('X')
 ylabel('Y')
@@ -117,6 +117,8 @@ for I=1:N
     ANK(I,J) = KONV * DCDSN * DX;
     ASK(I,J) =-KONV * DCDSS * DX;
 
+    APK(I,J) = KONV*((1-DCDSE)-(1-DCDSW))*DY+KONV*((1-DCDSN)-(1-DCDSS))*DX;
+
     AK(I,J) = KONV;
   end
 end
@@ -134,7 +136,8 @@ for J=1:N
     b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
 
     % Hauptdiagonale
-    A(IDX, IDX) = AP(I,J);
+    A(IDX, IDX) = AP(I,J) + APK(I,J);
+    A2(IDX,IDX) = APK(I,J);
 
     % Westliche Nebendiagonale
     if mod(IDX,N)==1
@@ -152,7 +155,7 @@ for J=1:N
 
     % Nördliche Nebendiagonale
     if IDX > NN-N
-      b(IDX) = b(IDX) - AN(I,J)*RBN(I) - AK(I,J)*RBN(I);
+      b(IDX) = b(IDX) - AN(I,J)*RBN(I) + AK(I,J)*RBN(I);
     else
       A(IDX, IDX+N) = AN(I,J) + ANK(I,J);
     end
@@ -174,7 +177,7 @@ T2 = zeros(N+2);
 T2(2:N+1,2:N+1) = T;
 
 figure(2)
-surf(XC, YC, T);
+surf(XC, YC, T');
 title('Numerische Loesung')
 xlabel('X')
 ylabel('Y')
@@ -192,16 +195,16 @@ end
 SERR=sqrt(SERR/NN);
 
 figure(3)
-surf(XC, YC, ERR);
+surf(XC, YC, ERR');
 title('Loesungsfehler')
 
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%% ORDNUNG  BESTIMMEN
-ERR5=1.6779195551e-02;
-ERR10=4.1327084831e-03;
-ERR20=1.0293533823e-03;
-ERR40=2.5710023908e-04;
+ERR5=5.7803454106e-02;
+ERR10=9.2055921584e-03;
+ERR20=2.0604562105e-03;
+ERR40=5.0728031553e-04;
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);
@@ -226,7 +229,7 @@ RES=A*s-b;
 RES2 = reshape(RES, N, N);
 
 figure(4)
-surf(XC, YC, RES2);
+surf(XC, YC, RES2');
 
 xlabel('XC')
 ylabel('YC')
@@ -242,7 +245,7 @@ for I=1:N
   for J=1:N
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
-    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
+    b(I,J) = MSOL(XC(I),YC(J))*DX*DY;
   end
 end
 
@@ -335,17 +338,18 @@ for I=3:N-2
       + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
       * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
 
-    TERR(I,J) = TERRSO - TERRE + TERRW - TERRN + TERRS;
+    TERR(I,J) = TERRSO - TERRE + TERRW - TERRN + TERRS...
+                       -TERRKE +TERRKW -TERRKN +TERRKS;
   end
 end
 
 figure(5)
 
-surf(XC, YC, TERR);
+surf(XC, YC, TERR');
 title('TE');
 
 
 RESTE = RES2-TERR;
 figure(6)
-surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2));
+surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2)');
 title('RES-TE');
