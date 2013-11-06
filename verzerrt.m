@@ -43,23 +43,23 @@ for I=1:N+1
   plot(X(:,I), Y(:,I));
 end
 
-% center points
-XC=zeros(N);
+% cell middle points
+Xm=zeros(N);
 for I=1:N
   for J=1:N
-    XC(I,J) = (X(I,J)+X(I+1,J)+X(I,J+1)+X(I+1,J+1))/4;
+    XM(I,J) = (X(I,J)+X(I+1,J)+X(I,J+1)+X(I+1,J+1))/4;
   end
 end
-YC=zeros(N);
+YM=zeros(N);
 for I=1:N
   for J=1:N
-    YC(I,J) = (Y(I,J)+Y(I+1,J)+Y(I,J+1)+Y(I+1,J+1))/4;
+    YM(I,J) = (Y(I,J)+Y(I+1,J)+Y(I,J+1)+Y(I+1,J+1))/4;
   end
 end
 
 for I=1:N
-  plot(XC(I,:), YC(I,:),'rx');
-  plot(XC(:,I), YC(:,I),'rx');
+  plot(XM(I,:), YM(I,:),'rx');
+  plot(XM(:,I), YM(:,I),'rx');
 end
 
 %NDIVS = 3;
