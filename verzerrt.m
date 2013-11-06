@@ -1,10 +1,11 @@
 clc
 clear all
 close all
+SOL=@(x,y) sin(pi*x)*sin(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
+
 %SOL=@(x,y) sin(pi*x)*sin(pi*y);
 %MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
-SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
-MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
@@ -14,7 +15,7 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=6; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=06; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
@@ -35,16 +36,18 @@ for I=1:N+1
 end
 
 % plot mesh
-figure;
+figure(1);
 hold on;
 grid on;
+xlabel('i');
+ylabel('j');
 for I=1:N+1
   plot(X(I,:), Y(I,:));
   plot(X(:,I), Y(:,I));
 end
 
 % cell middle points
-Xm=zeros(N);
+XM=zeros(N);
 for I=1:N
   for J=1:N
     XM(I,J) = (X(I,J)+X(I+1,J)+X(I,J+1)+X(I+1,J+1))/4;
@@ -60,6 +63,92 @@ end
 for I=1:N
   plot(XM(I,:), YM(I,:),'rx');
   plot(XM(:,I), YM(:,I),'rx');
+end
+
+% cell face centers
+% east-west sides
+XCH=zeros(N,N+1);
+YCH=zeros(N,N+1);
+YCH(:,N+1)=Y(1:N,N+1);
+for I=1:N
+  for J=1:N+1
+    XCH(I,J) = (X(I,J)+X(I+1,J))/2;
+    YCH(I,J) = (Y(I,J)+Y(I+1,J))/2;
+  end
+end
+for I=1:N+1
+  plot(XCH(:,I), YCH(1:N,I),'kx');
+end
+
+% north-south sides
+XCV=zeros(N+1,N);
+XCV(N+1,:)=X(N+1,1:N);
+YCV=zeros(N+1,N);
+for I=1:N+1
+  for J=1:N
+    XCV(I,J) = (X(I,J)+X(I,J+1))/2;
+    YCV(I,J) = (Y(I,J)+Y(I,J+1))/2;
+  end
+end
+for I=1:N+1
+  plot(XCV(I,1:N), YCV(I,:),'gx');
+end
+
+% normal vectors
+DXH = zeros(N+1,N);
+DYH = zeros(N+1, N);
+NVHX = zeros(N+1,N);
+NVHY = zeros(N+1,N);
+for I=1:N+1
+  for J=1:N
+    DX = X(I,J+1)-X(I,J);
+    DY = Y(I,J+1)-Y(I,J);
+
+    NORM = sqrt(DX^2 + DY^2);
+    NVHX(I,J) = DY/NORM;
+    NVHY(I,J) = -DX/NORM;
+
+    DXH(I,J)=DX;
+    DYH(I,J)=DY;
+  end
+end
+quiver(XCV(1:N+1,1:N), YCV(1:N+1,1:N), NVHX, NVHY, 0.2);
+
+DXV = zeros(N,N+1);
+DYV = zeros(N,N+1);
+NVVX = zeros(N,N+1);
+NVVY = zeros(N,N+1);
+for I=1:N
+  for J=1:N+1
+    DX = X(I+1,J)-X(I,J);
+    DY = Y(I+1,J)-Y(I,J);
+
+    NORM = sqrt(DX^2 + DY^2);
+    NVVX(I,J) = -DY/NORM;
+    NVVY(I,J) = DX/NORM;
+
+    DXV(I,J)=DX;
+    DYV(I,J)=DY;
+  end
+end
+quiver(XCH(1:N,1:N+1), YCH(1:N,1:N+1), NVVX, NVVY, 0.2);
+
+% cell metrics
+MXXI = DXV(:,1:N);
+MXETA= DYH(1:N,:);
+MYXI = DYV(:,1:N);
+MYETA= DXH(1:N,:);
+MDETJ= zeros(N);
+for I=1:N
+  for J=1:N
+    GAMMA = atand(MYXI(I,J)/MXXI(I,J));
+    BETA  = 90 - atand(MXETA(I,J)/MYETA(I,J));
+    A = sqrt(MXXI(I,J)^2 + MYXI(I,J)^2);
+    B = sqrt(MXETA(I,J)^2 + MYETA(I,J)^2);
+    MDETJ(I,J) = A*B*cosd(BETA+GAMMA);
+    THETA = 90 - BETA-GAMMA;
+    text(X(I,J)+0.02,Y(I,J)+0.02,num2str(THETA));
+  end
 end
 
 %NDIVS = 3;
@@ -97,18 +186,19 @@ end
 %YCR = [YMIN, YC, YMAX];
 
 %%%% ANALYTISCHE LÖSUNG
-%TA = zeros(N, N);
-%for I=1:N
-  %for J=1:N
-    %TA(I, J)=SOL(XC(I), YC(J));
-  %end
-%end
+TA = zeros(N, N);
+for I=1:N
+  for J=1:N
+    TA(I, J)=SOL(XM(I,J), YM(I,J));
+  end
+end
 
-%figure(1)
-%surf(XC, YC, TA');
-%title('Analytische Loesung')
-%xlabel('X')
-%ylabel('Y')
+hold off;
+figure(2)
+surf(XM, YM, TA');
+title('Analytische Loesung')
+xlabel('X')
+ylabel('Y')
 
 %%%% FVM Lösung
 
@@ -118,7 +208,7 @@ end
 %for I=1:N RBE(I)=SOL(1, YC(I)); end
 %for I=1:N RBW(I)=SOL(0, YC(I)); end
 
-%% Koeffizienten speichern
+%%% Koeffizienten speichern
 %AP = zeros(N);
 %AE = zeros(N);
 %AN = zeros(N);
@@ -127,6 +217,8 @@ end
 
 %for I=1:N
   %for J=1:N
+    %% east
+    %NORM_e = 
     %DX = X(I+1)-X(I);
     %DY = Y(J+1)-Y(J);
 
