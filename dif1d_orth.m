@@ -47,9 +47,9 @@ for I=1:N
   TA(I)=SOL(XC(I));
 end
 
-figure(1)
-plot(XC, TA, 'x-');
-title('Analytische Loesung')
+%figure(1)
+%plot(XC, TA, 'x-');
+%title('Analytische Loesung')
 
 %%% FVM Lösung
 
@@ -99,9 +99,9 @@ end
 
 T=A\b;
 
-figure(2)
-plot(XC, T, 'x-');
-title('Numerische Loesung')
+%figure(2)
+%plot(XC, T, 'x-');
+%title('Numerische Loesung')
 
 %%% Lösungsfehler berechnen
 SERR=0.0;
@@ -112,11 +112,11 @@ for I=1:N
 end
 SERR=sqrt(SERR/(N));
 
-figure(3)
-plot(XC, ERR, 'x-');
-title('Loesungsfehler')
+%figure(3)
+%plot(XC, ERR, 'x-');
+%title('Loesungsfehler')
 
-fprintf('Summierter Fehler %16.10e N=%g\n', SERR, length(X));
+%fprintf('Summierter Fehler %16.10e N=%g\n', SERR, length(X));
 
 
 %%%% ORDNUNG  BESTIMMEN
@@ -204,6 +204,7 @@ for I=1:N
   XP=XCR(I+1);
   TP=T(I);
   fP=b(I);
+
   Xe=X(I+1);
   Xw=X(I);
 
@@ -211,14 +212,14 @@ for I=1:N
 
   % west
   if I==1
-		XEE=XCR(I+3);
-    TEE=T(I+2);
-
     XE=XCR(I+2);
     TE=T(I+1);
     fE=b(I+1);
-
     Xee=X(I+2);
+
+		XEE=XCR(I+3);
+    TEE=T(I+2);
+
     De = (Xe-XP)/(XE-XP);
     Te = De * TE + (1-De) * TP;
 
@@ -231,19 +232,18 @@ for I=1:N
 
   % west +1
   elseif I==2
-		XEE=XCR(I+3);
-    TEE=T(I+2);
-	
-    XW=XCR(I);
-    TW=T(I-1);
-    fW=b(I-1);
-
     XE=XCR(I+2);
     TE=T(I+1);
     fE=b(I+1);
-
-    Xww=X(I-1);
     Xee=X(I+2);
+
+		XEE=XCR(I+3);
+    TEE=T(I+2);
+
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
+    Xww=X(I-1);
 
     TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
       * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
@@ -257,20 +257,20 @@ for I=1:N
 
   % east -1
   elseif I==N-1
-    XW=XCR(I);
-    TW=T(I-1);
-    fW=b(I-1);
-
     XE=XCR(I+2);
     TE=T(I+1);
     fE=b(I+1);
-
     Xee=X(I+2);
-		XWW=XCR(I-1);
-		TWW=T(I-2);
+
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
     Xww=X(I-1);
 
-    TERRDE(I) = 1/(2*(XE-XP))*((RBE-TP)/(Xee-XP)-(TE-TW)/(XE-XW))...
+		XWW=XCR(I-1);
+		TWW=T(I-2);
+
+    TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
       * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
       + (1/(Xee-Xe)*((RBE-TE)/(Xee-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
       * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
@@ -282,13 +282,16 @@ for I=1:N
 
   % east
   elseif I==N
-    Dw = (XP-Xw)/(XP-XW);
-    Tw = Dw * TW + (1-Dw)*TP;
-    Xww=X(I-1);
-
     XW=XCR(I);
     TW=T(I-1);
     fW=b(I-1);
+    Xww=X(I-1);
+
+		XWW=XCR(I-1);
+		TWW=T(I-2);
+
+    Dw = (XP-Xw)/(XP-XW);
+    Tw = Dw * TW + (1-Dw)*TP;
 
     TERRDE(I) = 1/2*((RBE-TP)/(Xe-XP) - (RBE-Tw)/(Xe-Xw));
 
@@ -296,27 +299,29 @@ for I=1:N
       * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
       + (1/(Xe-Xw)*((RBE-TP)/(Xe-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
       * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
+
   else
-		XEE=XCR(I+3);
-    TEE=T(I+2);
-	
     XW=XCR(I);
     TW=T(I-1);
     fW=b(I-1);
+    Xww=X(I-1);
 
     XE=XCR(I+2);
     TE=T(I+1);
     fE=b(I+1);
-
     Xee=X(I+2);
-    Xww=X(I-1);
+
 		XWW=XCR(I-1);
 		TWW=T(I-2);
+
+		XEE=XCR(I+3);
+    TEE=T(I+2);
 
     TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
       * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
       + (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
       * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
+
     TERRDW(I) = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
       * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
       + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
