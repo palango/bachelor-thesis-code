@@ -14,7 +14,7 @@ ALPHA=0.9;
 XMIN=0.0;
 XMAX=1.0;
 
-N=40; % KV's
+N=20; % KV's
 
 X = zeros(1,N+1);
 for I=1:N+1
@@ -22,18 +22,18 @@ for I=1:N+1
 end
 
 % N halbieren
-for j=1:1
-idx =1;
-X2=0;
-for i=1:N+1
-  if mod(i, 2)==1
-    X2(idx)=X(i);
-    idx=idx+1;
-  end
-end
-X=X2;
-N=length(X)-1;
-end
+%for j=1:1
+%idx =1;
+%X2=0;
+%for i=1:N+1
+  %if mod(i, 2)==1
+    %X2(idx)=X(i);
+    %idx=idx+1;
+  %end
+%end
+%X=X2;
+%N=length(X)-1;
+%end
 
 
 XC = (X(1:N)+X(2:N+1))/2;
@@ -159,68 +159,223 @@ title('Residuum')
 %%% Truncation Error berechnen
 
 % b ohne Randwerte
-TERR=zeros(1, N);
+TERR=zeros(N, 1);
 for I=1:N
   b(I) = MSOL(XC(I));
 end
-
-for I=3:N-2
+% Source term
+TERRS=zeros(N,1);
+for I=1:N
   % benötigte Werte zwischenspeichern
-  XEE=XCR(I+3);
-  XE=XCR(I+2);
   XP=XCR(I+1);
-  XW=XCR(I);
-  XWW=XCR(I-1);
   Xe=X(I+1);
-  Xee=X(I+2);
   Xw=X(I);
-  Xww=X(I-1);
+
+  DX = Xe-Xw;
+  fP=b(I);
+
+  % west
+  if I==1
+    fE=b(I+1);
+    XE=XCR(I+2);
+
+    TERRS(I) = 1/(6*DX)*((fE-fP)/(XE-XP)-(fP-RBW)/(XP-Xw))*((Xe-XP)^3-(Xw-XP)^3);
+  % east
+  elseif I==N
+    fW=b(I-1);
+    XW=XCR(I);
+
+    TERRS(I) = 1/(6*DX)*((RBE-fP)/(Xe-XP)-(fP-fW)/(XP-XW))*((Xe-XP)^3-(Xw-XP)^3);
+  % central
+  else
+    fE=b(I+1);
+    XE=XCR(I+2);
+    fW=b(I-1);
+    XW=XCR(I);
+
+    TERRS(I) = 1/(6*DX)*((fE-fP)/(XE-XP)-(fP-fW)/(XP-XW))*((Xe-XP)^3-(Xw-XP)^3);
+  end
+end
+
+% Diffusion Term east
+TERRDE=zeros(N,1);
+TERRDW=zeros(N,1);
+TERRKE=zeros(N,1);
+TERRKW=zeros(N,1);
+for I=1:N
+  % benötigte Werte zwischenspeichern
+  XP=XCR(I+1);
+  TP=T(I);
+  fP=b(I);
+
+  Xe=X(I+1);
+  Xw=X(I);
 
   DX = Xe-Xw;
 
-  fE=b(I+1);
-  fP=b(I);
-  fW=b(I-1);
+  % west
+  if I==1
+    XE=XCR(I+2);
+    TE=T(I+1);
+    fE=b(I+1);
+    Xee=X(I+2);
 
-  TEE=T(I+2);
-  TE=T(I+1);
-  TP=T(I);
-  TW=T(I-1);
-  TWW=T(I-2);
+		XEE=XCR(I+3);
+    TEE=T(I+2);
 
-  % Source term
-  TERRS = (fE-fW)/(2*(XE-XW))*((Xe-XP)^2-(Xw-XP)^2)...
-      + 1/(6*DX)*((fE-fP)/(XE-XP)-(fP-fW)/(XP-XW))*((Xe-XP)^3-(Xw-XP)^3);
+    De = (Xe-XP)/(XE-XP);
+    Te = De * TE + (1-De) * TP;
 
-  % Diffusion Term east
-  TERRE = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
+    TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-RBW)/(XE-Xw))...
+      * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
+      + (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-RBW)/(XP-Xw)))...
+      * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
+
+    TERRDW(I) = -1/2*((Te-RBW)/(Xe-Xw) - (TP-RBW)/(XP-Xw));
+
+    TERRKE(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-RBW)/(XP-Xw))*(Xe-XE)*(Xe-XP)...
+      + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+      * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-RBW)/(XE-Xw)) - 1/(XP-Xw)*((TE-RBW)/(XE-Xw) - (TP-RBW)/(XP-Xw)));
+
+    TERRKW(I) = 0;
+
+  % west +1
+  elseif I==2
+    XE=XCR(I+2);
+    TE=T(I+1);
+    fE=b(I+1);
+    Xee=X(I+2);
+
+		XEE=XCR(I+3);
+    TEE=T(I+2);
+
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
+    Xww=X(I-1);
+
+    TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
       * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
       + (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
       * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
 
-  TERRW = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
+    TERRDW(I) = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-RBW)/(XP-Xww))...
+      * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
+      + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-RBW)/(XW-Xww)))...
+      * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
+
+    TERRKE(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+      + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+      * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-RBW)/(XP-Xww)));
+
+    TERRKW(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+      + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+      * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-RBW)/(XP-Xww)));
+
+  % east -1
+  elseif I==N-1
+    XE=XCR(I+2);
+    TE=T(I+1);
+    fE=b(I+1);
+    Xee=X(I+2);
+
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
+    Xww=X(I-1);
+
+		XWW=XCR(I-1);
+		TWW=T(I-2);
+
+    TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
+      * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
+      + (1/(Xee-Xe)*((RBE-TE)/(Xee-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
+      * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
+
+    TERRDW(I) = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
       * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
       + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
       * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
 
-  TERRKE = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+    TERRKE(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+      + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+      * (1/(XE-XP)*((RBE-TP)/(Xee-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+
+    TERRKW(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+      + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+      * (1/(XE-XP)*((RBE-TP)/(Xee-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+
+  % east
+  elseif I==N
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
+    Xww=X(I-1);
+
+		XWW=XCR(I-1);
+		TWW=T(I-2);
+
+    Dw = (XP-Xw)/(XP-XW);
+    Tw = Dw * TW + (1-Dw)*TP;
+
+    TERRDE(I) = 1/2*((RBE-TP)/(Xe-XP) - (RBE-Tw)/(Xe-Xw));
+
+    TERRDW(I) = 1/(2*(XP-XW))*((RBE-TW)/(Xe-XW)-(TP-TWW)/(XP-XWW))...
+      * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
+      + (1/(Xe-Xw)*((RBE-TP)/(Xe-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
+      * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
+
+    TERRKE(I) = 0;
+
+    TERRKW(I) = 1/(2*(Xe-Xw))*((RBE-TP)/(Xe-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+      + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+      * (1/(Xe-XP)*((RBE-TP)/(Xe-XP)-(RBE-TW)/(Xe-XW)) - 1/(XP-XW)*((RBE-TW)/(Xe-XW) - (TP-TWW)/(XP-XWW)));
+
+  else
+    XW=XCR(I);
+    TW=T(I-1);
+    fW=b(I-1);
+    Xww=X(I-1);
+
+    XE=XCR(I+2);
+    TE=T(I+1);
+    fE=b(I+1);
+    Xee=X(I+2);
+
+		XWW=XCR(I-1);
+		TWW=T(I-2);
+
+		XEE=XCR(I+3);
+    TEE=T(I+2);
+
+    TERRDE(I) = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
+      * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
+      + (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
+      * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
+
+    TERRDW(I) = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
+      * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
+      + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
+      * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
+
+    TERRKE(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
       + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
       * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
 
-  TERRKW = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+    TERRKW(I) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
       + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
       * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
-
-  % einzelne Fehler addieren
-  TERR(I) = (TERRS-TERRE+TERRW-TERRKE+TERRKW);
+  end
 end
 
-
+for I=1:N
+  TERR(I) = TERRS(I)-TERRDE(I)+TERRDW(I)-TERRKE(I)+TERRKW(I);
+end
 
 hold on;
 plot(XC, TERR, 'rx-');
 
-RESTE = RES-TERR';
+RESTE = RES-TERR;
 
 figure(5)
 plot(XC(3:N-2), RESTE(3:N-2), 'x-')

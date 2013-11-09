@@ -157,7 +157,7 @@ title('Residuum')
 %%%% Truncation Error berechnen
 
 % b ohne Randwerte
-TERR=zeros(1, N);
+TERR=zeros(N, 1);
 for I=1:N
   b(I) = MSOL(XC(I));
 end
@@ -338,5 +338,5 @@ hold on;
 plot(XC, TERR, 'rx-');
 
 figure(5)
-plot(XC, RES-TERR', 'x-');
+plot(XC, RES-TERR, 'x-');
 title('RES - TE')
