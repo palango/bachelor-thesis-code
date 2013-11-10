@@ -2,7 +2,7 @@ clc
 clear all
 close all
 SOL=@(x,y) sin(pi*x)*sin(pi*y);
-MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) ;%+ pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
 
 %SOL=@(x,y) sin(pi*x)*sin(pi*y);
 %MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
@@ -15,24 +15,24 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=15; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
 X = zeros(N+1);
 for I=1:N+1
-  X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
-  X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
-  X(I,:) = linspace(X1, X2, N+1);
+  %X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
+  %X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
+  %X(I,:) = linspace(X1, X2, N+1);
+  X(:,I)=linspace(XMIN,XMAX,N+1);
 end
-% Interpolation
-
 
 Y = zeros(N+1);
 for I=1:N+1
-  Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
-  Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
-  Y(:,I) = linspace(Y1,Y2,N+1);
+  %Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
+  %Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
+  %Y(:,I) = linspace(Y1,Y2,N+1);
+  Y(I,:) = linspace(YMIN,YMAX,N+1);
 end
 
 % plot mesh
@@ -120,7 +120,7 @@ for I=1:N+1
     MYXIH(I,J)=(Y2-Y1)/NORM;
 
     DS=sqrt((XN-XS)^2+(YN-YS)^2);
-    MXETAH(I,J)=(XS-XS)/DS;
+    MXETAH(I,J)=(XN-XS)/DS;
     MYETAH(I,J)=(YN-YS)/DS;
   end
 end
@@ -347,20 +347,19 @@ AE = zeros(N);
 AN = zeros(N);
 AW = zeros(N);
 AS = zeros(N);
-
 for I=1:N
   for J=1:N
     % east
     PDE = MYETAH(I+1,J)*NVHX(I+1,J) - MXETAH(I+1,J)*NVHY(I+1,J);
     PDW = MYETAH(I,J)*NVHX(I,J) - MXETAH(I,J)*NVHY(I,J);
 
-    PDN = MYETAV(I,J+1)*NVVX(I,J+1) - MXETAV(I,J+1)*NVVY(I,J+1);
-    PDS = MYETAV(I,J)*NVVX(I,J) - MXETAV(I,J)*NVVY(I,J);
+    PDN = MXXIV(I,J+1)*NVVY(I,J+1) - MYXIV(I,J+1)*NVVX(I,J+1)
+    PDS = MXXIV(I,J)*NVVY(I,J) - MYXIV(I,J)*NVVX(I,J)
 
     AE(I,J) = DIF*LENGTHH(I+1,J) * PDE/MJH(I+1,J)/DMH(I+1,J);
     AW(I,J) = DIF*LENGTHH(I,J) * PDW/MJH(I,J)/DMH(I,J);
     AN(I,J) = DIF*LENGTHV(I,J+1) * PDN/MJV(I,J+1)/DMV(I,J+1);
-    AS(I,J) = DIF*LENGTHV(I,J) * PDS/MJV(I,J)/DMV(I,J+1);
+    AS(I,J) = DIF*LENGTHV(I,J) * PDS/MJV(I,J)/DMV(I,J);
 
     AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
   end
