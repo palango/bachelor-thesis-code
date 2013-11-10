@@ -12,7 +12,7 @@ YMIN=0.0;
 YMAX=1.0;
 ALPHAX=0.9;
 ALPHAY=0.9;
-N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=10; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 

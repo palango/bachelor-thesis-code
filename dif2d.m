@@ -1,7 +1,7 @@
 clc
 clear all
 close all
-SOL=@(x,y) sin(pi*x)*sin(pi*y);
+SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
 MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
 %SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
 %MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
@@ -10,7 +10,7 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=3; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -129,106 +129,106 @@ ylabel('Y')
 
 
 %%% Lösungsfehler berechnen
-SERR=0.0;
-ERR=zeros(N);
-for I=1:N
-  for J=1:N
-    ERR(I,J)=T(I, J)-TA(I, J);
-    SERR=SERR+ERR(I,J)^2;
-  end
-end
-SERR=sqrt(SERR/NN);
+%SERR=0.0;
+%ERR=zeros(N);
+%for I=1:N
+  %for J=1:N
+    %ERR(I,J)=T(I, J)-TA(I, J);
+    %SERR=SERR+ERR(I,J)^2;
+  %end
+%end
+%SERR=sqrt(SERR/NN);
 
-figure(3)
-surf(XC, YC, ERR);
-title('Loesungsfehler')
+%figure(3)
+%surf(XC, YC, ERR);
+%title('Loesungsfehler')
 
-fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
+%fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
-%%% ORDNUNG  BESTIMMEN
-ERR5=1.6779195551e-02;
-ERR10=4.1327084831e-03;
-ERR20=1.0293533823e-03;
-ERR40=2.5710023908e-04;
-op=log((ERR5)/(ERR10))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-op=log((ERR10)/(ERR20))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-op=log((ERR20)/(ERR40))/log(2);
-fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-
-
-
-%%% RESIDUUM BERECHNEN
-s=zeros(N);
-for I=1:N
-  for J=1:N
-    s(I, J)=SOL(XC(I), YC(J));
-  end
-end
-
-s=reshape(s, NN, 1);
-
-RES=A*s-b;
-
-RES2 = reshape(RES, N, N);
-
-figure(4)
-surf(XC, YC, RES2);
-
-xlabel('XC')
-ylabel('YC')
-zlabel('RES')
-title('Residuum')
-
-%%% Truncation Error berechnen
-
-% b ohne Randwerte
-TE=zeros(N);
-b=zeros(N);
-for I=1:N
-  for J=1:N
-    DX = X(I+1)-X(I);
-    DY = Y(J+1)-Y(J);
-    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
-  end
-end
-
-for I=3:N-2
-  for J=3:N-2
-    TE(I,J)=1;
-    DX = X(I+1)-X(I);
-    DY = Y(J+1)-Y(J);
-    TE(I,J) = ((DX*DY)/24 * (b(I+1,J)+b(I-1,J)+b(I,J+1)+b(I,J-1)-4*b(I,J)))... % TE_source
-            + ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))... % TE_e
-            - ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))... % TE_w
-            + ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))... % TE_n
-            - ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY)); % TE_s
-  end
-end
-
-% TE Sonderfälle für Randvolumen
-%I=2;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
-%TE(I) = TE(I)/DX;
-
-%I = N-1;
-%DX = X(I+1)-X(I);
-%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
-      %+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
-      %- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
-%TE(I) = TE(I)/DX;
-
-figure(5)
-
-surf(XC, YC, TE);
-title('TE');
+%%%% ORDNUNG  BESTIMMEN
+%ERR5=1.6779195551e-02;
+%ERR10=4.1327084831e-03;
+%ERR20=1.0293533823e-03;
+%ERR40=2.5710023908e-04;
+%op=log((ERR5)/(ERR10))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+%op=log((ERR10)/(ERR20))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+%op=log((ERR20)/(ERR40))/log(2);
+%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
-RESTE = RES2-TE;
-figure(6)
-surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2));
-title('RES-TE');
+
+%%%% RESIDUUM BERECHNEN
+%s=zeros(N);
+%for I=1:N
+  %for J=1:N
+    %s(I, J)=SOL(XC(I), YC(J));
+  %end
+%end
+
+%s=reshape(s, NN, 1);
+
+%RES=A*s-b;
+
+%RES2 = reshape(RES, N, N);
+
+%figure(4)
+%surf(XC, YC, RES2);
+
+%xlabel('XC')
+%ylabel('YC')
+%zlabel('RES')
+%title('Residuum')
+
+%%%% Truncation Error berechnen
+
+%% b ohne Randwerte
+%TE=zeros(N);
+%b=zeros(N);
+%for I=1:N
+  %for J=1:N
+    %DX = X(I+1)-X(I);
+    %DY = Y(J+1)-Y(J);
+    %b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
+  %end
+%end
+
+%for I=3:N-2
+  %for J=3:N-2
+    %TE(I,J)=1;
+    %DX = X(I+1)-X(I);
+    %DY = Y(J+1)-Y(J);
+    %TE(I,J) = ((DX*DY)/24 * (b(I+1,J)+b(I-1,J)+b(I,J+1)+b(I,J-1)-4*b(I,J)))... % TE_source
+            %+ ((T(I+2,J)-3*T(I+1,J)+3*T(I,J)-T(I-1,J))/(24*DX))... % TE_e
+            %- ((T(I+1,J)-3*T(I,J)+3*T(I-1,J)-T(I-2,J))/(24*DX))... % TE_w
+            %+ ((T(I,J+2)-3*T(I,J+1)+3*T(I,J)-T(I,J-1))/(24*DY))... % TE_n
+            %- ((T(I,J+1)-3*T(I,J)+3*T(I,J-1)-T(I,J-2))/(24*DY)); % TE_s
+  %end
+%end
+
+%% TE Sonderfälle für Randvolumen
+%%I=2;
+%%DX = X(I+1)-X(I);
+%%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %%+ ((T(I+2)-3*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %%- ((T(I+1)-3*T(I)+4*T(I-1)-2*RBW)/(24*DX)); % TE_w
+%%TE(I) = TE(I)/DX;
+
+%%I = N-1;
+%%DX = X(I+1)-X(I);
+%%TE(I) = (DX/24 * (b(I+1) - 2*b(I) + b(I-1)))... % TE_source
+      %%+ ((2*RBE-4*T(I+1)+3*T(I)-T(I-1))/(24*DX))... % TE_e
+      %%- ((T(I+1)-3*T(I)+3*T(I-1)-T(I-2))/(24*DX)); % TE_w
+%%TE(I) = TE(I)/DX;
+
+%figure(5)
+
+%surf(XC, YC, TE);
+%title('TE');
+
+
+%RESTE = RES2-TE;
+%figure(6)
+%surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2));
+%title('RES-TE');
