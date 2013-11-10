@@ -1,10 +1,17 @@
 clc
 clear all
 close all
+<<<<<<< Updated upstream
 %SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
 %MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
 SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
 MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
+=======
+SOL=@(x,y) sin(pi*x)*sin(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+%SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
+%MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
+>>>>>>> Stashed changes
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
