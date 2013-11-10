@@ -15,7 +15,7 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=06; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=15; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
@@ -60,43 +60,125 @@ for I=1:N
   end
 end
 
+%for I=1:N
+  %plot(XM(I,:), YM(I,:),'rx');
+  %plot(XM(:,I), YM(:,I),'rx');
+%end
+
+XMR=zeros(N+2);
+XMR(2:N+1,2:N+1) = XM;
+XMR(1,:) = XMIN*ones(1,N+2);
+XMR(N+2,:) = XMAX*ones(1,N+2);
 for I=1:N
-  plot(XM(I,:), YM(I,:),'rx');
-  plot(XM(:,I), YM(:,I),'rx');
+    XMR(I+1,1) = (X(I,1)+X(I+1,1))/2;
+end
+for I=1:N
+    XMR(I+1,N+2) = (X(I,N+1)+X(I+1,N+1))/2;
+end
+
+YMR=zeros(N+2);
+YMR(2:N+1,2:N+1) = YM;
+YMR(:,1) = YMIN*ones(N+2,1);
+YMR(:,N+2) = YMAX*ones(N+2,1);
+for J=1:N
+    YMR(1,J+1) = (Y(1,J)+Y(1,J+1))/2;
+end
+for J=1:N
+    YMR(N+2,J+1) = (Y(N+1,J)+Y(N+1,J+1))/2;
+end
+
+for I=1:N+2
+  plot(XMR(I,:), YMR(I,:),'rx');
+  plot(XMR(:,I), YMR(:,I),'rx');
+end
+
+% metrics
+MXXIH =zeros(N+1,N);
+MXETAH=zeros(N+1,N);
+MYXIH =zeros(N+1,N);
+MYETAH=zeros(N+1,N);
+
+MXXIV =zeros(N,N+1);
+MXETAV=zeros(N,N+1);
+MYXIV =zeros(N,N+1);
+MYETAV=zeros(N,N+1);
+
+for I=1:N+1
+  for J=1:N
+    X1=XMR(I,J+1);
+    X2=XMR(I+1,J+1);
+    Y1=YMR(I,J+1);
+    Y2=YMR(I+1,J+1);
+
+    XN=X(I,J+1);
+    YN=Y(I,J+1);
+    XS=X(I,J);
+    YS=Y(I,J);
+
+    NORM=sqrt((X2-X1)^2 + (Y2-Y1)^2);
+    MXXIH(I,J)=(X2-X1)/NORM;
+    MYXIH(I,J)=(Y2-Y1)/NORM;
+
+    DS=sqrt((XN-XS)^2+(YN-YS)^2);
+    MXETAH(I,J)=(XS-XS)/DS;
+    MYETAH(I,J)=(YN-YS)/DS;
+  end
+end
+for I=1:N
+  for J=1:N+1
+    X1=XMR(I+1,J);
+    X2=XMR(I+1,J+1);
+    Y1=YMR(I+1,J);
+    Y2=YMR(I+1,J+1);
+
+    XE=X(I+1,J);
+    YE=Y(I+1,J);
+    XW=X(I,J);
+    YW=Y(I,J);
+
+    NORM=sqrt((X2-X1)^2 + (Y2-Y1)^2);
+    MXETAV(I,J)=(X2-X1)/NORM;
+    MYETAV(I,J)=(Y2-Y1)/NORM;
+
+    DS=sqrt((XE-XW)^2+(YE-YW)^2);
+    MXXIV(I,J)=(XE-XW)/DS;
+    MYXIV(I,J)=(YE-YW)/DS;
+  end
 end
 
 % cell face centers
-% east-west sides
-XCH=zeros(N,N+1);
-YCH=zeros(N,N+1);
-YCH(:,N+1)=Y(1:N,N+1);
+% north-south sides
+XCV=zeros(N,N+1);
+YCV=zeros(N,N+1);
+YCV(:,N+1)=Y(1:N,N+1);
 for I=1:N
   for J=1:N+1
-    XCH(I,J) = (X(I,J)+X(I+1,J))/2;
-    YCH(I,J) = (Y(I,J)+Y(I+1,J))/2;
+    XCV(I,J) = (X(I,J)+X(I+1,J))/2;
+    YCV(I,J) = (Y(I,J)+Y(I+1,J))/2;
   end
 end
 for I=1:N+1
-  plot(XCH(:,I), YCH(1:N,I),'kx');
+  plot(XCV(:,I), YCV(:,I),'kx');
 end
 
-% north-south sides
-XCV=zeros(N+1,N);
-XCV(N+1,:)=X(N+1,1:N);
-YCV=zeros(N+1,N);
+% east-west sides
+XCH=zeros(N+1,N);
+XCH(N+1,:)=X(N+1,1:N);
+YCH=zeros(N+1,N);
 for I=1:N+1
   for J=1:N
-    XCV(I,J) = (X(I,J)+X(I,J+1))/2;
-    YCV(I,J) = (Y(I,J)+Y(I,J+1))/2;
+    XCH(I,J) = (X(I,J)+X(I,J+1))/2;
+    YCH(I,J) = (Y(I,J)+Y(I,J+1))/2;
   end
 end
 for I=1:N+1
-  plot(XCV(I,1:N), YCV(I,:),'gx');
+  plot(XCH(I,:), YCH(I,:),'gx');
 end
 
-% normal vectors
+%% normal vectors
 DXH = zeros(N+1,N);
 DYH = zeros(N+1, N);
+LENGTHH = zeros(N+1, N);
 NVHX = zeros(N+1,N);
 NVHY = zeros(N+1,N);
 for I=1:N+1
@@ -110,12 +192,14 @@ for I=1:N+1
 
     DXH(I,J)=DX;
     DYH(I,J)=DY;
+    LENGTHH(I,J)=NORM;
   end
 end
-quiver(XCV(1:N+1,1:N), YCV(1:N+1,1:N), NVHX, NVHY, 0.2);
+quiver(XCH, YCH, NVHX, NVHY, 0.2);
 
 DXV = zeros(N,N+1);
 DYV = zeros(N,N+1);
+LENGTHV = zeros(N,N+1);
 NVVX = zeros(N,N+1);
 NVVY = zeros(N,N+1);
 for I=1:N
@@ -129,28 +213,74 @@ for I=1:N
 
     DXV(I,J)=DX;
     DYV(I,J)=DY;
+    LENGTHV(I,J)=NORM;
   end
 end
-quiver(XCH(1:N,1:N+1), YCH(1:N,1:N+1), NVVX, NVVY, 0.2);
+quiver(XCV, YCV, NVVX, NVVY, 0.2);
 
-% cell metrics
-MXXI = DXV(:,1:N);
-MXETA= DYH(1:N,:);
-MYXI = DYV(:,1:N);
-MYETA= DXH(1:N,:);
-MDETJ= zeros(N);
+DMH=zeros(N+1,J);
+MJH=zeros(N+1,N);
+for I=1:N+1
+  for J=1:N
+    X1=XMR(I,J+1);
+    X2=XMR(I+1,J+1);
+    Y1=YMR(I,J+1);
+    Y2=YMR(I+1,J+1);
+
+    NORM=sqrt((X2-X1)^2 + (Y2-Y1)^2);
+    DMH(I,J)=NORM;
+
+    XN=X(I,J+1);
+    YN=Y(I,J+1);
+    XS=X(I,J);
+    YS=Y(I,J);
+
+    TOP = (X2-X1)*(YN-YS) - (Y2-Y1)*(XN-XS);
+
+    MJH(I,J) = TOP / (NORM * LENGTHH(I,J));
+  end
+end
+DMV=zeros(N,N+1);
+MJV=zeros(N,N+1);
+for I=1:N
+  for J=1:N+1
+    X1=XMR(I+1,J);
+    X2=XMR(I+1,J+1);
+    Y1=YMR(I+1,J);
+    Y2=YMR(I+1,J+1);
+
+    NORM=sqrt((X2-X1)^2 + (Y2-Y1)^2);
+    DMV(I,J)=NORM;
+
+    XE=X(I+1,J);
+    YE=Y(I+1,J);
+    XW=X(I,J);
+    YW=Y(I,J);
+
+    TOP=(XE-XW)*(Y2-Y1) - (YE-YW)*(X2-X1);
+
+    MJV(I,J) = TOP / (NORM * LENGTHV(I,J));
+  end
+end
+
+% cell volume
+V=zeros(N);
 for I=1:N
   for J=1:N
-    GAMMA = atand(MYXI(I,J)/MXXI(I,J));
-    BETA  = 90 - atand(MXETA(I,J)/MYETA(I,J));
-    A = sqrt(MXXI(I,J)^2 + MYXI(I,J)^2);
-    B = sqrt(MXETA(I,J)^2 + MYETA(I,J)^2);
-    MDETJ(I,J) = A*B*cosd(BETA+GAMMA);
-    THETA = 90 - BETA-GAMMA;
-    text(X(I,J)+0.02,Y(I,J)+0.02,num2str(THETA));
+    Xne = X(I+1,J+1);
+    Xnw = X(I,J+1);
+    Xsw = X(I,J);
+    Xse = X(I+1,J);
+
+    Yne = Y(I+1,J+1);
+    Ynw = Y(I,J+1);
+    Ysw = Y(I,J);
+    Yse = Y(I+1,J);
+
+    V(I,J) = 0.5*abs((Xse-Xnw)*(Yne-Ysw) - (Xne-Xsw)*(Yse-Ynw));
+    text(X(I,J)+0.01,Ysw+0.01,num2str(V(I,J)));
   end
 end
-
 %NDIVS = 3;
 %% N halbieren
 %for j=1:NDIVS
@@ -186,114 +316,111 @@ end
 %YCR = [YMIN, YC, YMAX];
 
 %%%% ANALYTISCHE LÖSUNG
-TA = zeros(N, N);
-for I=1:N
-  for J=1:N
-    TA(I, J)=SOL(XM(I,J), YM(I,J));
-  end
-end
+%TA = zeros(N, N);
+%for I=1:N
+  %for J=1:N
+    %TA(I, J)=SOL(XM(I,J), YM(I,J));
+  %end
+%end
 
-hold off;
-figure(2)
-surf(XM, YM, TA');
-title('Analytische Loesung')
-xlabel('X')
-ylabel('Y')
+%hold off;
+%figure(2)
+%surf(XM, YM, TA');
+%title('Analytische Loesung')
+%xlabel('X')
+%ylabel('Y')
 
 %%%% FVM Lösung
 
 %% Randbedingungen
-%for I=1:N RBS(I)=SOL(XC(I), 0); end
-%for I=1:N RBN(I)=SOL(XC(I), 1); end
-%for I=1:N RBE(I)=SOL(1, YC(I)); end
-%for I=1:N RBW(I)=SOL(0, YC(I)); end
+RB=zeros(N+2);
+for I=1:N+2
+  for J=1:N+2
+    RB(I,J) = SOL(XMR(I,J),YMR(I,J));
+  end
+end
+RB(2:N+1,2:N+1) = zeros(N);
 
 %%% Koeffizienten speichern
-%AP = zeros(N);
-%AE = zeros(N);
-%AN = zeros(N);
-%AW = zeros(N);
-%AS = zeros(N);
+AP = zeros(N);
+AE = zeros(N);
+AN = zeros(N);
+AW = zeros(N);
+AS = zeros(N);
 
-%for I=1:N
-  %for J=1:N
-    %% east
-    %NORM_e = 
-    %DX = X(I+1)-X(I);
-    %DY = Y(J+1)-Y(J);
+for I=1:N
+  for J=1:N
+    % east
+    PDE = MYETAH(I+1,J)*NVHX(I+1,J) - MXETAH(I+1,J)*NVHY(I+1,J);
+    PDW = MYETAH(I,J)*NVHX(I,J) - MXETAH(I,J)*NVHY(I,J);
 
-    %DXE = XCR(I+2)-XCR(I+1);
-    %DXW = XCR(I+1)-XCR(I);
+    PDN = MYETAV(I,J+1)*NVVX(I,J+1) - MXETAV(I,J+1)*NVVY(I,J+1);
+    PDS = MYETAV(I,J)*NVVX(I,J) - MXETAV(I,J)*NVVY(I,J);
 
-    %DYN = YCR(J+2)-YCR(J+1);
-    %DYS = YCR(J+1)-YCR(J);
+    AE(I,J) = DIF*LENGTHH(I+1,J) * PDE/MJH(I+1,J)/DMH(I+1,J);
+    AW(I,J) = DIF*LENGTHH(I,J) * PDW/MJH(I,J)/DMH(I,J);
+    AN(I,J) = DIF*LENGTHV(I,J+1) * PDN/MJV(I,J+1)/DMV(I,J+1);
+    AS(I,J) = DIF*LENGTHV(I,J) * PDS/MJV(I,J)/DMV(I,J+1);
 
-    %AE(I,J) = DIF*DY/DXE;
-    %AW(I,J) = DIF*DY/DXW;
-    %AN(I,J) = DIF*DX/DYN;
-    %AS(I,J) = DIF*DX/DYS;
-
-    %AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
-  %end
-%end
+    AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
+  end
+end
 
 %% Gesamtgleichungssystem aufstellen
-%A = zeros(NN);
-%b = zeros(NN, 1);
+A = zeros(NN);
+b = zeros(NN, 1);
 
-%for J=1:N
-  %for I=1:N
-    %IDX = (J-1)*N + I;
+for J=1:N
+  for I=1:N
+    IDX = (J-1)*N + I;
 
-    %DX = X(I+1)-X(I);
-    %DY = Y(J+1)-Y(J);
-    %b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
+    b(IDX) = MSOL(XM(I),YM(J))*V(I,J);
 
-    %% Hauptdiagonale
-    %A(IDX, IDX) = AP(I,J);
+    % Hauptdiagonale
+    A(IDX, IDX) = AP(I,J);
 
-    %% Westliche Nebendiagonale
-    %if mod(IDX,N)==1
-      %b(IDX) = b(IDX)-AW(I,J)*RBW(J);
-    %else
-      %A(IDX, IDX-1) = AW(I,J);
-    %end
+    % Westliche Nebendiagonale
+    if mod(IDX,N)==1
+      b(IDX) = b(IDX)-AW(I,J)*RB(1,J+1);
+    else
+      A(IDX, IDX-1) = AW(I,J);
+    end
 
-    %% Östliche Nebendiagonale
-    %if mod(IDX,N)==0
-      %b(IDX) = b(IDX)-AE(I,J)*RBE(J);
-    %else
-      %A(IDX, IDX+1) = AE(I,J);
-    %end
+    % Östliche Nebendiagonale
+    if mod(IDX,N)==0
+      b(IDX) = b(IDX)-AE(I,J)*RB(N+2,J+1);
+    else
+      A(IDX, IDX+1) = AE(I,J);
+    end
 
-    %% Nördliche Nebendiagonale
-    %if IDX > NN-N
-      %b(IDX) = b(IDX)-AN(I,J)*RBN(I);
-    %else
-      %A(IDX, IDX+N) = AN(I,J);
-    %end
+    % Nördliche Nebendiagonale
+    if IDX > NN-N
+      b(IDX) = b(IDX)-AN(I,J)*RB(I+1,N+2);
+    else
+      A(IDX, IDX+N) = AN(I,J);
+    end
 
-    %% Südliche Nebendiagonale
-    %if IDX <= N
-      %b(IDX) = b(IDX)-AS(I,J)*RBS(I);
-    %else
-      %A(IDX, IDX-N) = AS(I,J);
-    %end
-  %end
-%end
+    % Südliche Nebendiagonale
+    if IDX <= N
+      b(IDX) = b(IDX)-AS(I,J)*RB(I+1,1);
+    else
+      A(IDX, IDX-N) = AS(I,J);
+    end
+  end
+end
 
-%t=A\b;
-%T=reshape(t,N,N);
+t=A\b;
+T=reshape(t,N,N);
 
-%% mit Randwerten
-%T2 = zeros(N+2);
-%T2(2:N+1,2:N+1) = T;
+% mit Randwerten
+T2 = zeros(N+2);
+T2(2:N+1,2:N+1) = T;
 
-%figure(2)
-%surf(XC, YC, T');
-%title('Numerische Loesung')
-%xlabel('X')
-%ylabel('Y')
+figure(2)
+surf(XM, YM, T');
+title('Numerische Loesung')
+xlabel('X')
+ylabel('Y')
 
 
 %%%% Lösungsfehler berechnen
