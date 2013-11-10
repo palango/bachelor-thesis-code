@@ -15,24 +15,24 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=3; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=15; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
 X = zeros(N+1);
 for I=1:N+1
-  %X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
-  %X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
-  %X(I,:) = linspace(X1, X2, N+1);
-  X(:,I)=linspace(XMIN,XMAX,N+1);
+  X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
+  X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
+  X(I,:) = linspace(X1, X2, N+1);
+  %X(:,I)=linspace(XMIN,XMAX,N+1);
 end
 
 Y = zeros(N+1);
 for I=1:N+1
-  %Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
-  %Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
-  %Y(:,I) = linspace(Y1,Y2,N+1);
-  Y(I,:) = linspace(YMIN,YMAX,N+1);
+  Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
+  Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
+  Y(:,I) = linspace(Y1,Y2,N+1);
+  %Y(I,:) = linspace(YMIN,YMAX,N+1);
 end
 
 % plot mesh
@@ -407,12 +407,17 @@ end
 %% Gesamtgleichungssystem aufstellen
 A = zeros(NN);
 b = zeros(NN, 1);
+for J=1:N
+  for I=1:N
+    IDX = (J-1)*N + I;
+    b(IDX) = MSOL(XM(I,J),YM(I,J))*V(I,J);
+  end
+end
+b
 
 for J=1:N
   for I=1:N
     IDX = (J-1)*N + I;
-
-    b(IDX) = MSOL(XM(I),YM(J))*V(I,J);
 
     % Hauptdiagonale
     A(IDX, IDX) = AP(I,J);

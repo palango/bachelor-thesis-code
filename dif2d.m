@@ -72,15 +72,20 @@ end
 % Gesamtgleichungssystem aufstellen
 A = zeros(NN);
 b = zeros(NN, 1);
-
 for J=1:N
   for I=1:N
     IDX = (J-1)*N + I;
 
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
-    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
+    b(IDX) = MSOL(XC(I),YC(J))*DX*DY
+  end
+end
+b
 
+for J=1:N
+  for I=1:N
+    IDX = (J-1)*N + I;
     % Hauptdiagonale
     A(IDX, IDX) = AP(I,J);
 
