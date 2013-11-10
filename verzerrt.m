@@ -1,7 +1,7 @@
 clc
 clear all
 close all
-SOL=@(x,y) sin(pi*x)*sin(pi*y);
+SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
 MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) ;%+ pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
 
 %SOL=@(x,y) sin(pi*x)*sin(pi*y);
@@ -15,7 +15,7 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=3; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
@@ -347,14 +347,18 @@ AE = zeros(N);
 AN = zeros(N);
 AW = zeros(N);
 AS = zeros(N);
+ANE= zeros(N);
+ANW= zeros(N);
+ASE= zeros(N);
+ASW= zeros(N);
 for I=1:N
   for J=1:N
-    % east
+    % normal terms, orth grid
     PDE = MYETAH(I+1,J)*NVHX(I+1,J) - MXETAH(I+1,J)*NVHY(I+1,J);
     PDW = MYETAH(I,J)*NVHX(I,J) - MXETAH(I,J)*NVHY(I,J);
 
-    PDN = MXXIV(I,J+1)*NVVY(I,J+1) - MYXIV(I,J+1)*NVVX(I,J+1)
-    PDS = MXXIV(I,J)*NVVY(I,J) - MYXIV(I,J)*NVVX(I,J)
+    PDN = MXXIV(I,J+1)*NVVY(I,J+1) - MYXIV(I,J+1)*NVVX(I,J+1);
+    PDS = MXXIV(I,J)*NVVY(I,J) - MYXIV(I,J)*NVVX(I,J);
 
     AE(I,J) = DIF*LENGTHH(I+1,J) * PDE/MJH(I+1,J)/DMH(I+1,J);
     AW(I,J) = DIF*LENGTHH(I,J) * PDW/MJH(I,J)/DMH(I,J);
@@ -362,6 +366,41 @@ for I=1:N
     AS(I,J) = DIF*LENGTHV(I,J) * PDS/MJV(I,J)/DMV(I,J);
 
     AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
+
+    % terms from unorthogonal grid
+    PDE2 = MXXIH(I+1,J)*NVHY(I+1,J) - MYXIH(I+1,J)*NVHX(I+1,J);
+    PDW2 = MXXIH(I,J)*NVHY(I,J) - MYXIH(I,J)*NVHX(I,J);
+
+    PDN2 = MYETAV(I,J+1)*NVVX(I,J+1) - MXETAV(I,J+1)*NVVY(I,J+1);
+    PDS2 = MYETAV(I,J)*NVVX(I,J) - MXETAV(I,J)*NVVY(I,J);
+
+    % east
+    PDE3 = (DIF*LENGTHH(I+1,J)*PDE2/MJH(I+1,J)/LENGTHH(I+1,J))/4;
+    AN(I,J) = AN(I,J) + PDE3;
+    ANE(I,J) = PDE3;
+    AS(I,J) = AS(I,J) - PDE3;
+    ASE(I,J) = -PDE3;
+
+    % west
+    PDW3 = (DIF*LENGTHH(I,J)*PDW2/MJH(I,J)/LENGTHH(I,J))/4;
+    AN(I,J) = AN(I,J) + PDW3;
+    ANW(I,J) = PDW3;
+    AS(I,J) = AS(I,J) - PDW3;
+    ASW(I,J) = -PDW3;
+
+    % north
+    PDN3 = (DIF*LENGTHV(I,J+1)*PDN2/MJV(I,J+1)/LENGTHV(I,J+1))/4;
+    AE(I,J)  = AE(I,J) + PDN3;
+    ANE(I,J) = ANE(I,J)+ PDN3;
+    AW(I,J)  = AW(I,J) - PDN3;
+    ANW(I,J) = ANW(I,J)- PDN3;
+
+    % south
+    PDS3 = (DIF*LENGTHV(I,J)*PDS2/MJV(I,J)/LENGTHV(I,J))/4;
+    AE(I,J)  = AE(I,J) + PDS3;
+    ASE(I,J) = ASE(I,J)+ PDS3;
+    AW(I,J)  = AW(I,J) - PDS3;
+    ASW(I,J) = ASW(I,J)- PDS3;
   end
 end
 
@@ -405,6 +444,35 @@ for J=1:N
     else
       A(IDX, IDX-N) = AS(I,J);
     end
+
+    % non-orthogonal factors
+    % south-west
+    if mod(IDX,N)==1 | IDX <= N
+      b(IDX) = b(IDX)-ASW(I,J)*RB(I,J);
+    else
+      A(IDX,IDX-N-1) = ASW(I,J);
+    end
+
+    % north-west
+    if mod(IDX,N)==1 | IDX > NN-N
+      b(IDX) = b(IDX)-ANW(I,J)*RB(I,J+2);
+    else
+      A(IDX,IDX+N-1) = ANW(I,J);
+    end
+
+    % south-east
+    if mod(IDX,N)==0 | IDX <= N
+      b(IDX) = b(IDX)-ASE(I,J)*RB(I+2,J);
+    else
+      A(IDX,IDX-N+1) = ASE(I,J);
+    end
+
+    % north-east
+    if mod(IDX,N)==0 | IDX > NN-N
+      b(IDX) = b(IDX)-ANE(I,J)*RB(I+2,J+2);
+    else
+      A(IDX,IDX+N+1) = ANE(I,J);
+    end
   end
 end
 
@@ -412,12 +480,12 @@ t=A\b;
 T=reshape(t,N,N);
 
 % mit Randwerten
-T2 = zeros(N+2);
+T2 = RB;
 T2(2:N+1,2:N+1) = T;
 
 figure(2)
 surf(XM, YM, T');
-title('Numerische Loesung')
+title('Numerische Loesung1');
 xlabel('X')
 ylabel('Y')
 
