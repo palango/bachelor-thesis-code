@@ -1,7 +1,7 @@
 clc
 clear all
 close all
-%SOL=@(x,y) sin(pi*x)*sin(pi*y);
+%SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
 %MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
 SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
 MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
