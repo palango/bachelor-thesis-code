@@ -15,7 +15,7 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=15; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
@@ -34,6 +34,35 @@ for I=1:N+1
   Y(:,I) = linspace(Y1,Y2,N+1);
   %Y(I,:) = linspace(YMIN,YMAX,N+1);
 end
+
+NDIVS = 1;
+% N halbieren
+for j=1:NDIVS
+idx =1;
+Xneu=0;
+Yneu=0;
+for i=1:length(X)
+  idy =1;
+  inc=false;
+  for k=1:length(X)
+    if mod(i, 2)==1 & mod(k,2)==1
+      Xneu(idx,idy)=X(i,k);
+      Yneu(idx,idy)=Y(i,k);
+      idy=idy+1;
+      inc=true;
+    end
+  end
+  if inc
+    idx=idx+1;
+  end
+end
+X=Xneu;
+Y=Yneu;
+N=length(X)-1;
+NN=N*N;
+end
+
+
 
 % plot mesh
 figure(1);
@@ -316,19 +345,19 @@ end
 %YCR = [YMIN, YC, YMAX];
 
 %%%% ANALYTISCHE LÖSUNG
-%TA = zeros(N, N);
-%for I=1:N
-  %for J=1:N
-    %TA(I, J)=SOL(XM(I,J), YM(I,J));
-  %end
-%end
+TA = zeros(N, N);
+for I=1:N
+  for J=1:N
+    TA(I, J)=SOL(XM(I,J), YM(I,J));
+  end
+end
 
-%hold off;
-%figure(2)
-%surf(XM, YM, TA');
-%title('Analytische Loesung')
-%xlabel('X')
-%ylabel('Y')
+hold off;
+figure(9)
+surf(XM, YM, TA');
+title('Analytische Loesung')
+xlabel('X')
+ylabel('Y')
 
 %%%% FVM Lösung
 
@@ -413,7 +442,6 @@ for J=1:N
     b(IDX) = MSOL(XM(I,J),YM(I,J))*V(I,J);
   end
 end
-b
 
 for J=1:N
   for I=1:N
@@ -452,32 +480,32 @@ for J=1:N
 
     % non-orthogonal factors
     % south-west
-    if mod(IDX,N)==1 | IDX <= N
-      b(IDX) = b(IDX)-ASW(I,J)*RB(I,J);
-    else
-      A(IDX,IDX-N-1) = ASW(I,J);
-    end
+    %if mod(IDX,N)==1 | IDX <= N
+      %b(IDX) = b(IDX)-ASW(I,J)*RB(I,J);
+    %else
+      %A(IDX,IDX-N-1) = ASW(I,J);
+    %end
 
-    % north-west
-    if mod(IDX,N)==1 | IDX > NN-N
-      b(IDX) = b(IDX)-ANW(I,J)*RB(I,J+2);
-    else
-      A(IDX,IDX+N-1) = ANW(I,J);
-    end
+    %% north-west
+    %if mod(IDX,N)==1 | IDX > NN-N
+      %b(IDX) = b(IDX)-ANW(I,J)*RB(I,J+2);
+    %else
+      %A(IDX,IDX+N-1) = ANW(I,J);
+    %end
 
-    % south-east
-    if mod(IDX,N)==0 | IDX <= N
-      b(IDX) = b(IDX)-ASE(I,J)*RB(I+2,J);
-    else
-      A(IDX,IDX-N+1) = ASE(I,J);
-    end
+    %% south-east
+    %if mod(IDX,N)==0 | IDX <= N
+      %b(IDX) = b(IDX)-ASE(I,J)*RB(I+2,J);
+    %else
+      %A(IDX,IDX-N+1) = ASE(I,J);
+    %end
 
-    % north-east
-    if mod(IDX,N)==0 | IDX > NN-N
-      b(IDX) = b(IDX)-ANE(I,J)*RB(I+2,J+2);
-    else
-      A(IDX,IDX+N+1) = ANE(I,J);
-    end
+    %% north-east
+    %if mod(IDX,N)==0 | IDX > NN-N
+      %b(IDX) = b(IDX)-ANE(I,J)*RB(I+2,J+2);
+    %else
+      %A(IDX,IDX+N+1) = ANE(I,J);
+    %end
   end
 end
 
@@ -496,31 +524,31 @@ ylabel('Y')
 
 
 %%%% Lösungsfehler berechnen
-%SERR=0.0;
-%ERR=zeros(N);
-%for I=1:N
-  %for J=1:N
-    %ERR(I,J)=T(I, J)-TA(I, J);
-    %SERR=SERR+ERR(I,J)^2;
-  %end
-%end
-%SERR=sqrt(SERR/NN);
+SERR=0.0;
+ERR=zeros(N);
+for I=1:N
+  for J=1:N
+    ERR(I,J)=T(I, J)-TA(I, J);
+    SERR=SERR+ERR(I,J)^2;
+  end
+end
+SERR=sqrt(SERR/NN);
 
-%figure(3)
-%surf(XC, YC, ERR');
-%title('Loesungsfehler')
+figure(3)
+surf(XM, YM, ERR');
+title('Loesungsfehler')
 
-%fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
+fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%%% ORDNUNG  BESTIMMEN
-%ERR5=6.5277704659e-02;
-%ERR10=1.0773515741e-02;
-%ERR20=2.2555829695e-03;
+ERR5=5.9670806291e-02;
+ERR10=6.1601523373e-02;
+ERR20=9.8536823766e-02;
 %ERR40=5.4229194964e-04;
-%op=log((ERR5)/(ERR10))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR10)/(ERR20))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR5)/(ERR10))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR10)/(ERR20))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 %op=log((ERR20)/(ERR40))/log(2);
 %fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 

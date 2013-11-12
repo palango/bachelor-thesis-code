@@ -10,7 +10,7 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-N=3; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=5; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 X = linspace(XMIN, XMAX, N+1);
@@ -78,10 +78,9 @@ for J=1:N
 
     DX = X(I+1)-X(I);
     DY = Y(J+1)-Y(J);
-    b(IDX) = MSOL(XC(I),YC(J))*DX*DY
+    b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
   end
 end
-b
 
 for J=1:N
   for I=1:N
@@ -134,21 +133,21 @@ ylabel('Y')
 
 
 %%% Lösungsfehler berechnen
-%SERR=0.0;
-%ERR=zeros(N);
-%for I=1:N
-  %for J=1:N
-    %ERR(I,J)=T(I, J)-TA(I, J);
-    %SERR=SERR+ERR(I,J)^2;
-  %end
-%end
-%SERR=sqrt(SERR/NN);
+SERR=0.0;
+ERR=zeros(N);
+for I=1:N
+  for J=1:N
+    ERR(I,J)=T(I, J)-TA(I, J);
+    SERR=SERR+ERR(I,J)^2;
+  end
+end
+SERR=sqrt(SERR/NN);
 
 %figure(3)
 %surf(XC, YC, ERR);
 %title('Loesungsfehler')
 
-%fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
+fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%%% ORDNUNG  BESTIMMEN
 %ERR5=1.6779195551e-02;
