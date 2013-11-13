@@ -15,52 +15,58 @@ ALPHAX1=0.9;
 ALPHAX2=0.8;
 ALPHAY1=0.8;
 ALPHAY2=0.9;
-N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
-X = zeros(N+1);
-for I=1:N+1
-  X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
-  X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
-  X(I,:) = linspace(X1, X2, N+1);
-  %X(:,I)=linspace(XMIN,XMAX,N+1);
-end
+%X = zeros(N+1);
+%for I=1:N+1
+  %X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
+  %X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
+  %X(I,:) = linspace(X1, X2, N+1);
+  %%X(:,I)=linspace(XMIN,XMAX,N+1);
+%end
 
-Y = zeros(N+1);
-for I=1:N+1
-  Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
-  Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
-  Y(:,I) = linspace(Y1,Y2,N+1);
-  %Y(I,:) = linspace(YMIN,YMAX,N+1);
+%Y = zeros(N+1);
+%for I=1:N+1
+  %Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
+  %Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
+  %Y(:,I) = linspace(Y1,Y2,N+1);
+  %%Y(I,:) = linspace(YMIN,YMAX,N+1);
 end
-
-NDIVS = 1;
-% N halbieren
-for j=1:NDIVS
-idx =1;
-Xneu=0;
-Yneu=0;
-for i=1:length(X)
-  idy =1;
-  inc=false;
-  for k=1:length(X)
-    if mod(i, 2)==1 & mod(k,2)==1
-      Xneu(idx,idy)=X(i,k);
-      Yneu(idx,idy)=Y(i,k);
-      idy=idy+1;
-      inc=true;
-    end
-  end
-  if inc
-    idx=idx+1;
-  end
-end
-X=Xneu;
-Y=Yneu;
-N=length(X)-1;
-NN=N*N;
-end
+X=[0,0,0;
+   1,2,3;
+   4,4,4];
+Y=[0,3,4;
+   0,2,4;
+   0,1,4];
+N=2;
+%NDIVS = 3;
+%% N halbieren
+%for j=1:NDIVS
+%idx =1;
+%Xneu=0;
+%Yneu=0;
+%for i=1:length(X)
+  %idy =1;
+  %inc=false;
+  %for k=1:length(X)
+    %if mod(i, 2)==1 && mod(k,2)==1
+      %Xneu(idx,idy)=X(i,k);
+      %Yneu(idx,idy)=Y(i,k);
+      %idy=idy+1;
+      %inc=true;
+    %end
+  %end
+  %if inc
+    %idx=idx+1;
+  %end
+%end
+%X=Xneu;
+%Y=Yneu;
+%N=length(X)-1;
+%NN=N*N;
+%end
 
 
 
@@ -76,23 +82,53 @@ for I=1:N+1
 end
 
 % cell middle points
+% calculate point of gravity
 XM=zeros(N);
-for I=1:N
-  for J=1:N
-    XM(I,J) = (X(I,J)+X(I+1,J)+X(I,J+1)+X(I+1,J+1))/4;
-  end
-end
 YM=zeros(N);
 for I=1:N
   for J=1:N
-    YM(I,J) = (Y(I,J)+Y(I+1,J)+Y(I,J+1)+Y(I+1,J+1))/4;
+    X1 = X(I,J);
+    X2 = X(I+1,J);
+    X3 = X(I+1,J+1);
+    X4 = X(I,J+1);
+
+    Y1 = Y(I,J);
+    Y2 = Y(I+1,J);
+    Y3 = Y(I+1,J+1);
+    Y4 = Y(I,J+1);
+
+    % schwerpunkte dreiecke
+    XS1 = (X1+X2+X3)/3;
+    YS1 = (Y1+Y2+Y3)/3;
+    XS2 = (X1+X4+X3)/3;
+    YS2 = (Y1+Y4+Y3)/3;
+
+    % seitenlängen
+    S12 = sqrt((X2-X1)^2 + (Y2-Y1)^2);
+    S23 = sqrt((X3-X2)^2 + (Y3-Y2)^2);
+    S34 = sqrt((X4-X3)^2 + (Y4-Y3)^2);
+    S41 = sqrt((X1-X4)^2 + (Y1-Y4)^2);
+    S13 = sqrt((X3-X1)^2 + (Y3-Y1)^2);
+
+    % umfangslängen/2
+    S1 = (S12+S23+S13)/2;
+    S2 = (S34+S41+S13)/2;
+
+    A1 = sqrt(S1*(S1-S12)*(S1-S23)*(S1-S13));
+    A2 = sqrt(S2*(S2-S34)*(S2-S41)*(S2-S13));
+
+    XM(I,J) = (XS1*A1 + XS2*A2)/(A1+A2);
+    YM(I,J) = (YS1*A1 + YS2*A2)/(A1+A2);
+
+    %XM(I,J) = (X(I,J)+X(I+1,J)+X(I,J+1)+X(I+1,J+1))/4;
+    %YM(I,J) = (Y(I,J)+Y(I+1,J)+Y(I,J+1)+Y(I+1,J+1))/4;
   end
 end
 
-%for I=1:N
-  %plot(XM(I,:), YM(I,:),'rx');
-  %plot(XM(:,I), YM(:,I),'rx');
-%end
+for I=1:N
+  plot(XM(I,:), YM(I,:),'rx');
+  plot(XM(:,I), YM(:,I),'rx');
+end
 
 XMR=zeros(N+2);
 XMR(2:N+1,2:N+1) = XM;
@@ -436,15 +472,15 @@ end
 %% Gesamtgleichungssystem aufstellen
 A = zeros(NN);
 b = zeros(NN, 1);
-for J=1:N
-  for I=1:N
+for I=1:N
+  for J=1:N
     IDX = (J-1)*N + I;
     b(IDX) = MSOL(XM(I,J),YM(I,J))*V(I,J);
   end
 end
 
-for J=1:N
-  for I=1:N
+for I=1:N
+  for J=1:N
     IDX = (J-1)*N + I;
 
     % Hauptdiagonale
@@ -541,16 +577,16 @@ title('Loesungsfehler')
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%%% ORDNUNG  BESTIMMEN
-ERR5=5.9670806291e-02;
-ERR10=6.1601523373e-02;
-ERR20=9.8536823766e-02;
-%ERR40=5.4229194964e-04;
+ERR5=1.1794690469e-01;
+ERR10=4.1433144219e-02;
+ERR20=4.4227100813e-02;
+ERR40=6.3261570443e-02;
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
-%op=log((ERR20)/(ERR40))/log(2);
-%fprintf('Ordnung des Verfahrens %16.10e \n',op  );
+op=log((ERR20)/(ERR40))/log(2);
+fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
 
@@ -558,7 +594,7 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 %s=zeros(N);
 %for I=1:N
   %for J=1:N
-    %s(I, J)=SOL(XC(I), YC(J));
+    %s(I, J)=SOL(XM(I,J), YM(I,J));
   %end
 %end
 
@@ -569,50 +605,48 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 %RES2 = reshape(RES, N, N);
 
 %figure(4)
-%surf(XC, YC, RES2');
+%surf(XM, YM, RES2');
 
 %xlabel('XC')
 %ylabel('YC')
 %zlabel('RES')
 %title('Residuum')
 
-%%%% Truncation Error berechnen
+%%%%% Truncation Error berechnen
 
-%% b ohne Randwerte
+%%% b ohne Randwerte
 %TERR=zeros(N);
 %b=zeros(N);
 %for I=1:N
   %for J=1:N
-    %DX = X(I+1)-X(I);
-    %DY = Y(J+1)-Y(J);
-    %b(I,J) = MSOL(XC(I),YC(J))*DX*DY;
+    %b(I,J) = MSOL(XM(I,J),YM(I,J))*V(I,J);
   %end
 %end
 
 %for I=3:N-2
   %for J=3:N-2
     %% benötigte Werte zwischenspeichern
-    %XEE=XCR(I+3);
-    %XE=XCR(I+2);
-    %XP=XCR(I+1);
-    %XW=XCR(I);
-    %XWW=XCR(I-1);
-    %Xe=X(I+1);
-    %Xee=X(I+2);
-    %Xw=X(I);
-    %Xww=X(I-1);
+    %XEE=XM(I+2,J);
+    %XE=XM(I+1,J);
+    %XP=XM(I,J);
+    %XW=XM(I-1,J);
+    %XWW=XM(I-2,J);
+    %Xe=XCH(I+1,J);
+    %Xee=XCH(I+2,J);
+    %Xw=XCH(I,J);
+    %Xww=XCH(I-1,J);
 
     %DX = Xe-Xw;
 
-    %YNN=YCR(J+3);
-    %YN=YCR(J+2);
-    %YP=YCR(J+1);
-    %YS=YCR(J);
-    %YSS=YCR(J-1);
-    %Yn=Y(J+1);
-    %Ynn=Y(J+2);
-    %Ys=Y(J);
-    %Yss=Y(J-1);
+    %YNN=YM(I,J+2);
+    %YN=YM(I,J+1);
+    %YP=YM(I,J);
+    %YS=YM(I,J-1);
+    %YSS=YM(I,J-2);
+    %Yn=YCV(I,J+1);
+    %Ynn=YCV(I,J+2);
+    %Ys=YCV(I,J);
+    %Yss=YCV(I,J-1);
 
     %DY = Yn-Ys;
 
@@ -631,10 +665,6 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
     %TNN=T(I,J+2);
     %TS=T(I,J-1);
     %TSS=T(I,J-2);
-
-
-    %DX = X(I+1)-X(I);
-    %DY = Y(J+1)-Y(J);
 
     %% Source Term
     %TERRSO = 1/2*((fE-fP)/((XE-XP)*DX) - (fP-fW)/((XP-XW)*DX))...
@@ -668,7 +698,7 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 %figure(5)
 
-%surf(XC, YC, TERR');
+%surf(XM, YM, TERR');
 %title('TE');
 
 
