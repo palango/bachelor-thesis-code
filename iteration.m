@@ -14,13 +14,14 @@ THIST = zeros(ITER,N);
 % Anfangsgitter
 %XI = linspace(0,1,N+1);
 
-XMIN=0.0;
-XMAX=1.0;
-ALPHA=0.9;
-XI = zeros(1,N+1);
-for I=1:N+1
-  XI(I) = XMIN + (ALPHA^(I-1)-1)/(ALPHA^N-1)*(XMAX-XMIN);
-end
+%XMIN=0.0;
+%XMAX=1.0;
+%ALPHA=0.9;
+%XI = zeros(1,N+1);
+%for I=1:N+1
+  %XI(I) = XMIN + (ALPHA^(I-1)-1)/(ALPHA^N-1)*(XMAX-XMIN);
+%end
+XI=[0,sort(rand(1,N-1)),1];
 
 for A=1:ITER
   XHIST(A,:) = XI;

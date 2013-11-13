@@ -14,7 +14,7 @@ ALPHA=0.9;
 XMIN=0.0;
 XMAX=1.0;
 
-N=20; % KV's
+N=80; % KV's
 
 X = zeros(1,N+1);
 for I=1:N+1
@@ -378,6 +378,6 @@ plot(XC, TERR, 'rx-');
 RESTE = RES-TERR;
 
 figure(5)
-plot(XC(3:N-2), RESTE(3:N-2), 'x-')
+plot(XC(1:N), RESTE(1:N), 'x-')
 xlabel('XC')
 ylabel('RES-TE')
