@@ -10,23 +10,24 @@ XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
 RESHIST = zeros(ITER,N);
 THIST = zeros(ITER,N);
+SOLERRHIST = zeros(ITER,1);
 
 % Anfangsgitter
 %XI = linspace(0,1,N+1);
 
-%XMIN=0.0;
-%XMAX=1.0;
-%ALPHA=0.9;
-%XI = zeros(1,N+1);
-%for I=1:N+1
-  %XI(I) = XMIN + (ALPHA^(I-1)-1)/(ALPHA^N-1)*(XMAX-XMIN);
-%end
-XI=[0,sort(rand(1,N-1)),1];
+XMIN=0.0;
+XMAX=1.0;
+ALPHA=0.5;
+XI = zeros(1,N+1);
+for I=1:N+1
+  XI(I) = XMIN + (ALPHA^(I-1)-1)/(ALPHA^N-1)*(XMAX-XMIN);
+end
+%XI=[0,sort(rand(1,N-1)),1];
 
 for A=1:ITER
   XHIST(A,:) = XI;
   % TE ausrechnen
-  [TERRI, RESI, TI] = dif1d_orth_it(N,XI);
+  [TERRI, RESI, TI,SERRI] = dif1d_orth_it(N,XI);
 
   ERR=0;
   for I=1:N
@@ -42,7 +43,8 @@ for A=1:ITER
   % Werte speichern
   TEHIST(A,:) = TERRI;
   RESHIST(A,:) =RESI;
-THIST(A,:) = TI;
+  THIST(A,:) = TI;
+  SOLERRHIST(A,:) = SERRI;
 end
 
 % Suche bestes Ergebnis im Vergleich zu 1
@@ -76,3 +78,8 @@ plot(1:ITER, ERRMIN*ones(1,ITER),'g-')
 plot(1:ITER, SERR(1)*ones(1,ITER),'r-')
 fprintf('Verbesserung relativ: %4.2f%%\n', abs(ERRMIN-SERR(1))/SERR(1)*100);
 
+figure(3);
+hold on;
+plot(1:ITER, SOLERRHIST)
+plot(1:ITER, SOLERRHIST(1)*ones(1,ITER),'g-')
+plot(1:ITER, SOLERRHIST(IDXMIN)*ones(1,ITER),'r-')
