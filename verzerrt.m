@@ -11,36 +11,37 @@ XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-ALPHAX1=0.9;
-ALPHAX2=0.8;
-ALPHAY1=0.8;
-ALPHAY2=0.9;
-N=40; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
+ALPHAX1=0.95;
+ALPHAX2=0.9;
+ALPHAY1=0.9;
+ALPHAY2=0.95;
+N=10; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
 % Randwerte
-%X = zeros(N+1);
-%for I=1:N+1
-  %X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
-  %X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
-  %X(I,:) = linspace(X1, X2, N+1);
-  %%X(:,I)=linspace(XMIN,XMAX,N+1);
-%end
-
-%Y = zeros(N+1);
-%for I=1:N+1
-  %Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
-  %Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
-  %Y(:,I) = linspace(Y1,Y2,N+1);
-  %%Y(I,:) = linspace(YMIN,YMAX,N+1);
+X = zeros(N+1);
+for I=1:N+1
+  X1 = XMIN + (ALPHAX1^(I-1)-1)/(ALPHAX1^N-1)*(XMAX-XMIN);
+  X2 = XMIN + (ALPHAX2^(I-1)-1)/(ALPHAX2^N-1)*(XMAX-XMIN);
+  X(I,:) = linspace(X1, X2, N+1);
+  %X(:,I)=linspace(XMIN,XMAX,N+1);
 end
-X=[0,0,0;
-   1,2,3;
-   4,4,4];
-Y=[0,3,4;
-   0,2,4;
-   0,1,4];
-N=2;
+
+Y = zeros(N+1);
+for I=1:N+1
+  Y1 = YMIN + (ALPHAY1^(I-1)-1)/(ALPHAY1^N-1)*(YMAX-YMIN);
+  Y2 = YMIN + (ALPHAY2^(I-1)-1)/(ALPHAY2^N-1)*(YMAX-YMIN);
+  Y(:,I) = linspace(Y1,Y2,N+1);
+  %Y(I,:) = linspace(YMIN,YMAX,N+1);
+end
+%X=[0,0,0;
+   %0.25,0.5,0.75;
+   %1,1,1];
+%Y=[0,0.75,1;
+   %0,0.5,1;
+   %0,0.25,1];
+%N=2;
+%NN=4;
 %NDIVS = 3;
 %% N halbieren
 %for j=1:NDIVS
@@ -153,8 +154,8 @@ for J=1:N
 end
 
 for I=1:N+2
-  plot(XMR(I,:), YMR(I,:),'rx');
-  plot(XMR(:,I), YMR(:,I),'rx');
+  plot(XMR(I,:), YMR(I,:),'bx');
+  plot(XMR(:,I), YMR(:,I),'bx');
 end
 
 % metrics
@@ -591,115 +592,146 @@ fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 
 
 %%%% RESIDUUM BERECHNEN
-%s=zeros(N);
-%for I=1:N
-  %for J=1:N
-    %s(I, J)=SOL(XM(I,J), YM(I,J));
-  %end
-%end
+s=zeros(N);
+for I=1:N
+  for J=1:N
+    s(I, J)=SOL(XM(I,J), YM(I,J));
+  end
+end
 
-%s=reshape(s, NN, 1);
+s=reshape(s, NN, 1);
 
-%RES=A*s-b;
+RES=A*s-b;
 
-%RES2 = reshape(RES, N, N);
+RES2 = reshape(RES, N, N);
 
-%figure(4)
-%surf(XM, YM, RES2');
+figure(4)
+surf(XM, YM, RES2');
 
-%xlabel('XC')
-%ylabel('YC')
-%zlabel('RES')
-%title('Residuum')
+xlabel('XC')
+ylabel('YC')
+zlabel('RES')
+title('Residuum')
 
-%%%%% Truncation Error berechnen
+%%%% Truncation Error berechnen
 
-%%% b ohne Randwerte
-%TERR=zeros(N);
-%b=zeros(N);
-%for I=1:N
-  %for J=1:N
-    %b(I,J) = MSOL(XM(I,J),YM(I,J))*V(I,J);
-  %end
-%end
+%% b ohne Randwerte
+TERR=zeros(N);
+b=zeros(N);
+for I=1:N
+  for J=1:N
+    b(I,J) = MSOL(XM(I,J),YM(I,J))*V(I,J);
+  end
+end
 
-%for I=3:N-2
-  %for J=3:N-2
-    %% benötigte Werte zwischenspeichern
-    %XEE=XM(I+2,J);
-    %XE=XM(I+1,J);
-    %XP=XM(I,J);
-    %XW=XM(I-1,J);
-    %XWW=XM(I-2,J);
-    %Xe=XCH(I+1,J);
-    %Xee=XCH(I+2,J);
-    %Xw=XCH(I,J);
-    %Xww=XCH(I-1,J);
+for I=3:N-2
+  for J=3:N-2
+    % benötigte Werte zwischenspeichern
+    XEE=XM(I+2,J);
+    XE=XM(I+1,J);
+    XP=XM(I,J);
+    XW=XM(I-1,J);
+    XWW=XM(I-2,J);
+    Xe=XCH(I+1,J);
+    Xee=XCH(I+2,J);
+    Xw=XCH(I,J);
+    Xww=XCH(I-1,J);
 
-    %DX = Xe-Xw;
+    DX = Xe-Xw;
 
-    %YNN=YM(I,J+2);
-    %YN=YM(I,J+1);
-    %YP=YM(I,J);
-    %YS=YM(I,J-1);
-    %YSS=YM(I,J-2);
-    %Yn=YCV(I,J+1);
-    %Ynn=YCV(I,J+2);
-    %Ys=YCV(I,J);
-    %Yss=YCV(I,J-1);
+    YNN=YM(I,J+2);
+    YN=YM(I,J+1);
+    YP=YM(I,J);
+    YS=YM(I,J-1);
+    YSS=YM(I,J-2);
+    Yn=YCV(I,J+1);
+    Ynn=YCV(I,J+2);
+    Ys=YCV(I,J);
+    Yss=YCV(I,J-1);
 
-    %DY = Yn-Ys;
+    DY = Yn-Ys;
 
-    %fE=b(I+1,J);
-    %fP=b(I,J);
-    %fW=b(I-1,J);
-    %fN=b(I,J+1);
-    %fS=b(I,J-1);
+    fE=b(I+1,J);
+    fP=b(I,J);
+    fW=b(I-1,J);
+    fN=b(I,J+1);
+    fS=b(I,J-1);
 
-    %TEE=T(I+2,J);
-    %TE=T(I+1,J);
-    %TP=T(I,J);
-    %TW=T(I-1,J);
-    %TWW=T(I-2,J);
-    %TN=T(I,J+1);
-    %TNN=T(I,J+2);
-    %TS=T(I,J-1);
-    %TSS=T(I,J-2);
+    TEE=T(I+2,J);
+    TE=T(I+1,J);
+    TP=T(I,J);
+    TW=T(I-1,J);
+    TWW=T(I-2,J);
+    TN=T(I,J+1);
+    TNN=T(I,J+2);
+    TS=T(I,J-1);
+    TSS=T(I,J-2);
 
-    %% Source Term
-    %TERRSO = 1/2*((fE-fP)/((XE-XP)*DX) - (fP-fW)/((XP-XW)*DX))...
-           %* ((Xe-XP)^3 - (Xw-XP)^3)/3*DY...
-          %+ 1/2*((fN-fP)/((YN-YP)*DY) - (fP-fS)/((YP-YS)*DY))...
-           %* ((Yn-YP)^3 - (Ys-YP)^3)/3*DX;
+    % Source Term
+    TERRSO = 1/2*((fE-fP)/((XE-XP)*DX) - (fP-fW)/((XP-XW)*DX))...
+           * ((Xe-XP)^3 - (Xw-XP)^3)/3*DY...
+          + 1/2*((fN-fP)/((YN-YP)*DY) - (fP-fS)/((YP-YS)*DY))...
+           * ((Yn-YP)^3 - (Ys-YP)^3)/3*DX;
 
-    %TERRE = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
-      %* (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
-      %+ (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
-      %* 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
+    TERRE = 1/(2*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW))...
+      * (((XP-Xe)^2-(XE-Xe)^2)/(XE-XP))...
+      + (1/(Xee-Xe)*((TEE-TE)/(XEE-XE)-(TE-TP)/(XE-XP)) - 1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)))...
+      * 1/(6*(XE-XP))*(((XP-Xe)^3-(XE-Xe)^3)/(XE-XP));
 
-    %TERRW = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
-      %* (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
-      %+ (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
-      %* 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
+    TERRW = 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))...
+      * (((XW-Xw)^2-(XP-Xw)^2)/(XP-XW))...
+      + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
+      * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW));
 
-    %TERRN = 1/(2*(YN-YP))*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS))...
-      %* (((YP-Yn)^2-(YN-Yn)^2)/(YN-YP))...
-      %+ (1/(Ynn-Yn)*((TNN-TN)/(YNN-YN)-(TN-TP)/(YN-YP)) - 1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)))...
-      %* 1/(6*(YN-YP))*(((YP-Yn)^3-(YN-Yn)^3)/(YN-YP));
+    TERRN = 1/(2*(YN-YP))*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS))...
+      * (((YP-Yn)^2-(YN-Yn)^2)/(YN-YP))...
+      + (1/(Ynn-Yn)*((TNN-TN)/(YNN-YN)-(TN-TP)/(YN-YP)) - 1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)))...
+      * 1/(6*(YN-YP))*(((YP-Yn)^3-(YN-Yn)^3)/(YN-YP));
 
-    %TERRS = 1/(2*(YP-YS))*((TN-TS)/(YN-YS)-(TP-TSS)/(YP-YSS))...
-      %* (((YS-Ys)^2-(YP-Ys)^2)/(YP-YS))...
-      %+ (1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-TSS)/(YS-YSS)))...
-      %* 1/(6*(YP-YS))*(((YS-Ys)^3-(YP-Ys)^3)/(YP-YS));
+    TERRS = 1/(2*(YP-YS))*((TN-TS)/(YN-YS)-(TP-TSS)/(YP-YSS))...
+      * (((YS-Ys)^2-(YP-Ys)^2)/(YP-YS))...
+      + (1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-TSS)/(YS-YSS)))...
+      * 1/(6*(YP-YS))*(((YS-Ys)^3-(YP-Ys)^3)/(YP-YS));
 
-    %TERR(I,J) = TERRSO - TERRE + TERRW - TERRN + TERRS;
-  %end
-%end
+    % interpolated points
+    TNE = (TE+TN+TP+T(I+1,J+1))/4;
+    TNW = (TW+TN+TP+T(I-1,J+1))/4;
+    TSE = (TE+TS+TP+T(I+1,J-1))/4;
+    TSW = (TW+TS+TP+T(I-1,J-1))/4;
 
-%figure(5)
+    % terms from unorthogonal grid
+    PDE2 = MXXIH(I+1,J)*NVHY(I+1,J) - MYXIH(I+1,J)*NVHX(I+1,J);
+    PDW2 = MXXIH(I,J)*NVHY(I,J) - MYXIH(I,J)*NVHX(I,J);
 
-%surf(XM, YM, TERR');
-%title('TE');
+    PDN2 = MYETAV(I,J+1)*NVVX(I,J+1) - MXETAV(I,J+1)*NVVY(I,J+1);
+    PDS2 = MYETAV(I,J)*NVVX(I,J) - MXETAV(I,J)*NVVY(I,J);
+
+    % east
+    PDE3 = (DIF*LENGTHH(I+1,J)*PDE2/MJH(I+1,J)/LENGTHH(I+1,J));
+
+    % west
+    PDW3 = (DIF*LENGTHH(I,J)*PDW2/MJH(I,J)/LENGTHH(I,J));
+
+    % north
+    PDN3 = (DIF*LENGTHV(I,J+1)*PDN2/MJV(I,J+1)/LENGTHV(I,J+1));
+
+    % south
+    PDS3 = (DIF*LENGTHV(I,J)*PDS2/MJV(I,J)/LENGTHV(I,J));
+
+    % add rest terms
+    TERRE = TERRE - PDE3*(TNE-TSE);
+    TERRW = TERRW - PDW3*(TNW-TSW);
+    TERRN = TERRN - PDN3*(TNE-TNW);
+    TERRS = TERRS - PDS3*(TSE-TSW);
+
+    TERR(I,J) = TERRSO - TERRE*DY + TERRW*DY - TERRN*DX + TERRS*DX;
+  end
+end
+
+figure(5)
+
+surf(XM, YM, TERR');
+title('TE');
 
 
 %RESTE = RES2-TERR;
