@@ -68,14 +68,16 @@ end
 X2 = XHIST(IDXMIN,:);
 XC2 = (X2(1:N)+X2(2:N+1))/2;
 TE2 = TEHIST(IDXMIN,:);
-plot(XC2,TE2,'bx-');
 plot(XC2,RESHIST(IDXMIN,:),'rx-');
+plot(XC2,TE2,'bx-');
+legend('TE1','RES1','TE2','RES2')
 
 figure(2);
 hold on;
 plot(1:ITER, SERR)
 plot(1:ITER, ERRMIN*ones(1,ITER),'g-')
 plot(1:ITER, SERR(1)*ones(1,ITER),'r-')
+legend('Summierter Abbruchfehler','Anfangsfehler','Kleinster Fehler');
 fprintf('Verbesserung relativ: %4.2f%%\n', abs(ERRMIN-SERR(1))/SERR(1)*100);
 
 figure(3);
@@ -83,3 +85,5 @@ hold on;
 plot(1:ITER, SOLERRHIST)
 plot(1:ITER, SOLERRHIST(1)*ones(1,ITER),'g-')
 plot(1:ITER, SOLERRHIST(IDXMIN)*ones(1,ITER),'r-')
+legend('Summierter Fehler','Anfangsfehler','Kleinster Fehler');
+fprintf('Verbesserung absoluter Fehler relativ: %4.2f%%\n', abs(SOLERRHIST(1)-SOLERRHIST(IDXMIN))/SOLERRHIST(1)*100);
