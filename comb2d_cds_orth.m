@@ -4,7 +4,7 @@ close all
 SOL=@(x,y) sin(pi*x)*sin(pi*y);
 MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
 %SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
-%MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*cos(pi/2*y);
+%MSOL=@(x,y) -pi*sin(pi*x/2)*sin(pi*y/2)/2-pi^2*sin(pi*x/2)*cos(pi*y/2)/2+pi*cos(pi*x/2)*cos(pi*y/2)/2;
 DIF=1.0;
 KONV=1.0;
 XMIN=0.0;
