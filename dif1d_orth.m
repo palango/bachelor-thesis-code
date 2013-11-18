@@ -128,6 +128,7 @@ ERR20=2.0468563747e-03;
 ERR40=5.1125958817e-04;
 ERR80=1.2778649795e-04;
 
+fprintf('Summierter Fehler %16.10e N=%g\n', SERR, N);
 
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );

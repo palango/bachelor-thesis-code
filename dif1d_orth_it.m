@@ -1,4 +1,4 @@
-function [TRUNCERR,RES,T,SERR] = dif1d_orth_it(N,X)
+function [TRUNCERR,RES,T,SERR,ERR] = dif1d_orth_it(N,X)
 %SOL=@(x) sin(pi*x)+1;
 %MSOL=@(x)-pi^2*sin(pi*x);
 

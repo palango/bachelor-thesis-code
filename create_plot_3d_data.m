@@ -3,7 +3,7 @@ function [] = create_plot_3d_data(X, Y, Z)
 file = fopen('data.txt','w');
 for I=1:length(X)
   for J=1:length(Y)
-    fprintf(file, '%f %f %f\n', X(I), Y(J), Z(I,J));
+    fprintf(file, '%f %f %16.16e\n', X(I), Y(J), Z(I,J));
   end
   fprintf(file, '\n');
 end

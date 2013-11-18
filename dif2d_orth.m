@@ -2,18 +2,18 @@ clc
 clear all
 close all
 
-SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
-MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
-%SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
-%MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
+%SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
+%MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
+SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
+MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
 
 DIF=1.0;
 XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-ALPHAX=0.9;
-ALPHAY=0.9;
+ALPHAX=0.95;
+ALPHAY=0.95;
 N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
@@ -28,7 +28,7 @@ for I=1:N+1
   Y(I) = YMIN + (ALPHAY^(I-1)-1)/(ALPHAY^N-1)*(YMAX-YMIN);
 end
 
-%NDIVS = 3;
+%NDIVS = 1;
 %% N halbieren
 %for j=1:NDIVS
 %idx =1;
@@ -188,10 +188,12 @@ title('Loesungsfehler')
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%% ORDNUNG  BESTIMMEN
-ERR5=6.5277704659e-02;
-ERR10=1.0773515741e-02;
-ERR20=2.2555829695e-03;
-ERR40=5.4229194964e-04;
+% testfall 3
+ERR5=2.5533815252e-02;
+ERR10=5.2848291306e-03;
+ERR20=1.2692480449e-03;
+ERR40=3.1459455034e-04;
+
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);
@@ -216,8 +218,8 @@ RES=A*s-b;
 RES2 = reshape(RES, N, N);
 
 figure(4)
-surf(XC(2:N-1), YC(2:N-1), [RES2(2:N-1,2:N-1)]');
-%surf(XC, YC, RES2');
+%surf(XC(2:N-1), YC(2:N-1), [RES2(2:N-1,2:N-1)]');
+surf(XC, YC, RES2');
 
 xlabel('XC')
 ylabel('YC')
@@ -600,4 +602,4 @@ RESTE = RES2-TERR;
 figure(6)
 surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2)');
 %surf(XC, YC, RESTE');
-title('RES-TE');
+title('RES-TE')

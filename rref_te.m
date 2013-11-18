@@ -1,7 +1,7 @@
-function [X2] = rref2(N,X,ERR)
+function [X2,W] = rref_te(N,X,ERR)
 %close all
 %N = 10;
-X = linspace(0,1,N+1);
+%X = linspace(0,1,N+1);
 XC = (X(1:N)+X(2:N+1))/2;
 DX = X(2:N+1)-X(1:N);
 %ERR = cos(pi*XC);

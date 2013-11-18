@@ -4,7 +4,7 @@ clear all;
 
 
 N=10;
-ITER=350;
+ITER=150;
 
 XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
@@ -39,7 +39,7 @@ for A=1:ITER
 %  fprintf('Summierter Fehler %16.10e I=%g\n', SERR(A), A);
 
   % Gitter anpassen
-  [XI,WI] = rref_te(N,XI,TERRI);
+  [XI,WI] = rref_grad(N,XI,TI);
 
   % Werte speichern
   TEHIST(A,:) = TERRI;

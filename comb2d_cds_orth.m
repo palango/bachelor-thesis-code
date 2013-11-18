@@ -3,8 +3,8 @@ clear all
 close all
 SOL=@(x,y) sin(pi*x)*sin(pi*y);
 MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
-%SOL=@(x,y) sin(pi/2*x)*cos(pi/2*y);
-%MSOL=@(x,y) -pi*sin(pi*x/2)*sin(pi*y/2)/2-pi^2*sin(pi*x/2)*cos(pi*y/2)/2+pi*cos(pi*x/2)*cos(pi*y/2)/2;
+%SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
+%MSOL=@(x,y) pi/2*cos(pi/2*x)*cos(pi/2*y) -pi/2*sin(pi/2*x)*sin(pi/2*y) -pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
 KONV=1.0;
 XMIN=0.0;
@@ -201,6 +201,7 @@ title('Loesungsfehler')
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%% ORDNUNG  BESTIMMEN
+%T3
 ERR5=5.7803454106e-02;
 ERR10=9.2055921584e-03;
 ERR20=2.0604562105e-03;

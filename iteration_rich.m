@@ -4,7 +4,7 @@ clear all;
 
 
 N=10;
-ITER=350;
+ITER=100;
 
 XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
@@ -31,15 +31,33 @@ for A=1:ITER
   % TE ausrechnen
   [TERRI, RESI, TI,SERRI,ERRI] = dif1d_orth_it(N,XI);
 
+  XFINE = zeros(1,2*N+1);
+  for I=1:N
+    XFINE(2*I-1) = XI(I);
+    XFINE(2*I) = (XI(I+1)+XI(I))/2;
+  end
+  XFINE(2*N+1)=XI(N+1);
+  %finer solution
+  [TERRI2, RESI2, TI2,SERRI2,ERRI2] = dif1d_orth_it(N*2,XFINE);
+
   ERR=0;
   for I=1:N
     ERR=ERR+TERRI(I)^2;
   end
   SERR(A)=sqrt(ERR/(N));
+
+
+  % richardson extrapolation
+  TR = zeros(1,N);
+  for I=1:N
+    TR(I) = (4*TI2(2*I) - TI(I))/3;
+  end
+
+
 %  fprintf('Summierter Fehler %16.10e I=%g\n', SERR(A), A);
 
   % Gitter anpassen
-  [XI,WI] = rref_te(N,XI,TERRI);
+  [XI,WI] = rref_te(N,XI,TR.-TI');
 
   % Werte speichern
   TEHIST(A,:) = TERRI;
