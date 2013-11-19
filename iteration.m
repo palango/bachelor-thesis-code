@@ -3,7 +3,7 @@ clc;
 clear all;
 
 
-N=10;
+N=20;
 ITER=350;
 
 XHIST = zeros(ITER,N+1);

@@ -3,8 +3,8 @@ clc;
 clear all;
 
 
-N=10;
-ITER=100;
+N=20;
+ITER=350;
 
 XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
@@ -40,19 +40,14 @@ for A=1:ITER
   %finer solution
   [TERRI2, RESI2, TI2,SERRI2,ERRI2] = dif1d_orth_it(N*2,XFINE);
 
-  ERR=0;
-  for I=1:N
-    ERR=ERR+TERRI(I)^2;
-  end
-  SERR(A)=sqrt(ERR/(N));
-
-
   % %fehler wzischen feinem und groebn gitter
   TR = zeros(1,N);
+  ERR=0;
   for I=1:N
     TR(I) = (ERRI2(2*I)+ERRI2(2*I-1))-ERRI(I);
+    ERR=ERR+TR(I)^2;
   end
-
+  SERR(A)=sqrt(ERR/(N));
 
 %  fprintf('Summierter Fehler %16.10e I=%g\n', SERR(A), A);
 
@@ -60,7 +55,7 @@ for A=1:ITER
   [XI,WI] = rref_te(N,XI,TR.-TI');
 
   % Werte speichern
-  TEHIST(A,:) = TERRI;
+  TEHIST(A,:) = TR;
   RESHIST(A,:) =RESI;
   THIST(A,:) = TI;
   SOLERRHIST(A,:) = SERRI;

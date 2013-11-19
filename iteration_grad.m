@@ -3,8 +3,8 @@ clc;
 clear all;
 
 
-N=10;
-ITER=150;
+N=20;
+ITER=350;
 
 XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
@@ -14,8 +14,6 @@ SOLERRHIST = zeros(ITER,1);
 WHIST = zeros(ITER,N+1);
 ERRHIST = zeros(ITER,N);
 
-% Anfangsgitter
-%XI = linspace(0,1,N+1);
 
 XMIN=0.0;
 XMAX=1.0;
@@ -31,15 +29,10 @@ for A=1:ITER
   % TE ausrechnen
   [TERRI, RESI, TI,SERRI,ERRI] = dif1d_orth_it(N,XI);
 
-  ERR=0;
-  for I=1:N
-    ERR=ERR+TERRI(I)^2;
-  end
-  SERR(A)=sqrt(ERR/(N));
-%  fprintf('Summierter Fehler %16.10e I=%g\n', SERR(A), A);
 
   % Gitter anpassen
-  [XI,WI] = rref_grad(N,XI,TI);
+  [XI,WI,GRADERRI] = rref_grad(N,XI,TI);
+  SERR(A)=GRADERRI;
 
   % Werte speichern
   TEHIST(A,:) = TERRI;
@@ -67,6 +60,7 @@ for A=1:ITER
     ERRMIN=SERR(A);
   end
 end
+IDXMIN=ITER;
 
 X2 = XHIST(IDXMIN,:);
 XC2 = (X2(1:N)+X2(2:N+1))/2;
@@ -80,7 +74,7 @@ hold on;
 semilogy(1:ITER, SERR)
 semilogy(1:ITER, ERRMIN*ones(1,ITER),'g-')
 semilogy(1:ITER, SERR(1)*ones(1,ITER),'r-')
-legend('Summierter Abbruchfehler','Anfangsfehler','Kleinster Fehler');
+legend('Summierter Gradient','Anfangsfehler','Kleinster Fehler');
 fprintf('Verbesserung relativ: %4.2f%%\n', abs(ERRMIN-SERR(1))/SERR(1)*100);
 
 figure(3);

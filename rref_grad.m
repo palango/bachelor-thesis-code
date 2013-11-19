@@ -1,4 +1,4 @@
-function [X2,W] = rref_grad(N,X,T)
+function [X2,W,SERR] = rref_grad(N,X,T)
 XC = (X(1:N)+X(2:N+1))/2;
 DX = X(2:N+1)-X(1:N);
 
@@ -16,11 +16,17 @@ ERR(N+1) = (RBN-T(N))/(DX(N)/2);
 
 ERR=abs(ERR);
 
+SUM=0;
+for I=1:N+1
+  SUM=SUM+ERR(I)^2;
+end
+SERR=sqrt(SUM/(N+1));
+
 % Verteilung für Ränder der KV berechnen
-W = ERR.^1;
-WX(1)=W(1);
-WX(2:N) = (W(1:N-1)+W(2:N))/2;
-WX(N+1) = W(N);
+WX = ERR.^1;
+%WX(1)=W(1);
+%WX(2:N) = (W(1:N-1)+W(2:N))/2;
+%WX(N+1) = W(N);
 
 
 for C=1:10

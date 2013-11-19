@@ -1,19 +1,18 @@
 clc
 clear all
 close all
-
-%SOL=@(x,y) sin(pi*x)*sin(pi*y)+1;
-%MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y);
-SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
-MSOL=@(x,y) -1*pi^2/2*sin(pi/2*x)*sin(pi/2*y);
-
+SOL=@(x,y) sin(pi*x)*sin(pi*y);
+MSOL=@(x,y) -2*pi^2*sin(pi*x)*sin(pi*y) + pi*cos(pi*x)*sin(pi*y) + pi*sin(pi*x)*cos(pi*y);
+%SOL=@(x,y) sin(pi/2*x)*sin(pi/2*y);
+%MSOL=@(x,y) pi/2*cos(pi/2*x)*cos(pi/2*y) -pi/2*sin(pi/2*x)*sin(pi/2*y) -pi^2/2*sin(pi/2*x)*cos(pi/2*y);
 DIF=1.0;
+KONV=1.0;
 XMIN=0.0;
 XMAX=1.0;
 YMIN=0.0;
 YMAX=1.0;
-ALPHAX=0.95;
-ALPHAY=0.95;
+ALPHAX=0.9;
+ALPHAY=0.9;
 N=20; % KV's in einer Koordinatenrichtung, macht N^2 KV gesamt
 NN=N*N;
 
@@ -22,14 +21,13 @@ X = zeros(1,N+1);
 for I=1:N+1
   X(I) = XMIN + (ALPHAX^(I-1)-1)/(ALPHAX^N-1)*(XMAX-XMIN);
 end
-
 Y = zeros(1,N+1);
 for I=1:N+1
   Y(I) = YMIN + (ALPHAY^(I-1)-1)/(ALPHAY^N-1)*(YMAX-YMIN);
 end
 
-%NDIVS = 1;
-%% N halbieren
+NDIVS = 3;
+% N halbieren
 %for j=1:NDIVS
 %idx =1;
 %X2=0;
@@ -108,6 +106,20 @@ for I=1:N
     AS(I,J) = DIF*DX/DYS;
 
     AP(I,J) = -AE(I,J)-AN(I,J)-AW(I,J)-AS(I,J);
+
+    DCDSE = (X(I+1)-XCR(I+1))/DXE;
+    DCDSW = (XCR(I+1)-X(I))/DXW;
+    DCDSN = (Y(J+1)-YCR(J+1))/DYN;
+    DCDSS = (YCR(J+1)-Y(J))/DYS;
+
+    AEK(I,J) = KONV * DCDSE * DY;
+    AWK(I,J) =-KONV * DCDSW * DY;
+    ANK(I,J) = KONV * DCDSN * DX;
+    ASK(I,J) =-KONV * DCDSS * DX;
+
+    APK(I,J) = KONV*((1-DCDSE)-(1-DCDSW))*DY+KONV*((1-DCDSN)-(1-DCDSS))*DX;
+
+    AK(I,J) = KONV;
   end
 end
 
@@ -124,34 +136,35 @@ for J=1:N
     b(IDX) = MSOL(XC(I),YC(J))*DX*DY;
 
     % Hauptdiagonale
-    A(IDX, IDX) = AP(I,J);
+    A(IDX, IDX) = AP(I,J) + APK(I,J);
+    A2(IDX,IDX) = APK(I,J);
 
     % Westliche Nebendiagonale
     if mod(IDX,N)==1
-      b(IDX) = b(IDX)-AW(I,J)*RBW(J);
+      b(IDX) = b(IDX) - AW(I,J)*RBW(J) + AK(I,J)*RBW(J);
     else
-      A(IDX, IDX-1) = AW(I,J);
+      A(IDX, IDX-1) = AW(I,J) + AWK(I,J);
     end
 
     % Östliche Nebendiagonale
     if mod(IDX,N)==0
-      b(IDX) = b(IDX)-AE(I,J)*RBE(J);
+      b(IDX) = b(IDX) - AE(I,J)*RBE(J) - AK(I,J)*RBE(J);
     else
-      A(IDX, IDX+1) = AE(I,J);
+      A(IDX, IDX+1) = AE(I,J) + AEK(I,J);
     end
 
     % Nördliche Nebendiagonale
     if IDX > NN-N
-      b(IDX) = b(IDX)-AN(I,J)*RBN(I);
+      b(IDX) = b(IDX) - AN(I,J)*RBN(I) + AK(I,J)*RBN(I);
     else
-      A(IDX, IDX+N) = AN(I,J);
+      A(IDX, IDX+N) = AN(I,J) + ANK(I,J);
     end
 
     % Südliche Nebendiagonale
     if IDX <= N
-      b(IDX) = b(IDX)-AS(I,J)*RBS(I);
+      b(IDX) = b(IDX) - AS(I,J)*RBS(I) - AK(I,J)*RBS(I);
     else
-      A(IDX, IDX-N) = AS(I,J);
+      A(IDX, IDX-N) = AS(I,J) + ASK(I,J);
     end
   end
 end
@@ -188,12 +201,11 @@ title('Loesungsfehler')
 fprintf('Summierter Fehler %16.10e NN=%g\n', SERR, NN);
 
 %%% ORDNUNG  BESTIMMEN
-% testfall 3
-ERR5=2.5533815252e-02;
-ERR10=5.2848291306e-03;
-ERR20=1.2692480449e-03;
-ERR40=3.1459455034e-04;
-
+%T3
+ERR5=5.7803454106e-02;
+ERR10=9.2055921584e-03;
+ERR20=2.0604562105e-03;
+ERR40=5.0728031553e-04;
 op=log((ERR5)/(ERR10))/log(2);
 fprintf('Ordnung des Verfahrens %16.10e \n',op  );
 op=log((ERR10)/(ERR20))/log(2);
@@ -218,7 +230,6 @@ RES=A*s-b;
 RES2 = reshape(RES, N, N);
 
 figure(4)
-%surf(XC(2:N-1), YC(2:N-1), [RES2(2:N-1,2:N-1)]');
 surf(XC, YC, RES2');
 
 xlabel('XC')
@@ -307,6 +318,10 @@ TERRDE=zeros(N);
 TERRDW=zeros(N);
 TERRDN=zeros(N);
 TERRDS=zeros(N);
+TERRKE=zeros(N);
+TERRKW=zeros(N);
+TERRKN=zeros(N);
+TERRKS=zeros(N);
 for I=1:N
   for J=1:N
     % benötigte Werte zwischenspeichern
@@ -343,6 +358,13 @@ for I=1:N
 
       TERRDW(I,J) = -1/2*((Te-RBW(J))/(Xe-Xw) - (TP-RBW(J))/(XP-Xw));
 
+      TERRKE(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-RBW(J))/(XP-Xw))*(Xe-XE)*(Xe-XP)...
+          + 1/(6*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-RBW(J))/(XE-Xw)) * ((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+          * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-RBW(J))/(XE-Xw)) - 1/(XP-Xw)*((TE-RBW(J))/(XE-Xw) - (TP-RBW(J))/(XP-Xw)));
+
+      TERRKW(I,J) = 0;
+
     % west +1
     elseif I==2
       XE=XCR(I+2);
@@ -369,6 +391,16 @@ for I=1:N
         * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW))...
         + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-RBW(J))/(XW-Xww)))...
         * 1/(6*(XP-XW)) * ((Yn-YP)^3 - (Ys-YP)^3);
+
+      TERRKE(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+          + 1/(6*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) * ((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+          * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-RBW(J))/(XP-Xww)));
+
+      TERRKW(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+          + 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-RBW(J))/(XP-Xww))*((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+          * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-RBW(J))/(XP-Xww)));
 
     % east -1
     elseif I==N-1
@@ -397,6 +429,16 @@ for I=1:N
         + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
         * 1/(6*(XP-XW)) * ((Yn-YP)^3 - (Ys-YP)^3);
 
+      TERRKE(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+          + 1/(6*(XE-XP))*((RBE(J)-TP)/(Xee-XP)-(TE-TW)/(XE-XW)) * ((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+          * (1/(XE-XP)*((RBE(J)-TP)/(Xee-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+
+      TERRKW(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+          + 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))*((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+          * (1/(XE-XP)*((RBE(J)-TP)/(Xee-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+
     % east
     elseif I==N
       XW=XCR(I);
@@ -416,7 +458,15 @@ for I=1:N
         + (1/(Xe-Xw)*((RBE(J)-TP)/(Xe-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
         * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW))...
         + (1/(Xe-Xw)*((RBE(J)-TP)/(Xe-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
-        * 1/(6*(XP-XW)) * ((Yn-YP)^3 - (Ys-YP)^3);
+        * 1/(6*(XP-XW)) * ((Yn-YP)^3 - (Ys-YP)^3);;
+
+      TERRKE(I,J) = 0;
+
+      TERRKW(I,J) = 1/(2*(Xe-Xw))*((RBE(J)-TP)/(Xe-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+          + 1/(2*(XP-XW))*((RBE(J)-TW)/(Xe-XW)-(TP-TWW)/(XP-XWW))*((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+          * (1/(Xe-XP)*((RBE(J)-TP)/(Xe-XP)-(RBE(J)-TW)/(Xe-XW)) - 1/(XP-XW)*((RBE(J)-TW)/(Xe-XW) - (TP-TWW)/(XP-XWW)));
+
 
     else
       XW=XCR(I);
@@ -446,6 +496,16 @@ for I=1:N
         * 1/(6*(XP-XW))*(((XW-Xw)^3-(XP-Xw)^3)/(XP-XW))...
         + (1/(Xe-Xw)*((TE-TP)/(XE-XP)-(TP-TW)/(XP-XW)) - 1/(Xw-Xww)*((TP-TW)/(XP-XW)-(TW-TWW)/(XW-XWW)))...
         * 1/(6*(XP-XW)) * ((Yn-YP)^3 - (Ys-YP)^3);
+
+      TERRKE(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xe-XE)*(Xe-XP)...
+          + 1/(6*(XE-XP))*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) * ((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xe-XP)/DX*((Xe-XP)^2-(XE-XP)^2)...
+          * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
+
+      TERRKW(I,J) = 1/(2*(Xe-Xw))*((TE-TP)/(XE-XP) - (TP-TW)/(XP-XW))*(Xw-XW)*(Xw-XP)...
+          + 1/(2*(XP-XW))*((TE-TW)/(XE-XW)-(TP-TWW)/(XP-XWW))*((Yn-YP)^3 - (Ys-YP)^3)...
+          + 1/6*(Xw-XP)/DX*((Xw-XP)^2-(XW-XP)^2)...
+          * (1/(XE-XP)*((TEE-TP)/(XEE-XP)-(TE-TW)/(XE-XW)) - 1/(XP-XW)*((TE-TW)/(XE-XW) - (TP-TWW)/(XP-XWW)));
     end
 
 
@@ -474,6 +534,13 @@ for I=1:N
 
       TERRDW(I,J) = -1/2*((Tn-RBS(I))/(Yn-Ys) - (TP-RBS(I))/(YP-Ys));
 
+      TERRKN(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-RBS(I))/(YP-Ys))*(Yn-YN)*(Yn-YP)...
+          + 1/(6*(YN-YP))*((TNN-TP)/(YNN-YP)-(TN-RBS(I))/(YN-Ys)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Yn-YP)/DY*((Yn-YP)^2-(YN-YP)^2)...
+          * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-RBS(I))/(YN-Ys)) - 1/(YP-Ys)*((TN-RBS(I))/(YN-Ys) - (TP-RBS(I))/(YP-Ys)));
+
+      TERRKS(I,J) = 0;
+
     % south +1
     elseif J==2
       YN=YCR(J+2);
@@ -500,6 +567,16 @@ for I=1:N
         * 1/(6*(YP-YS))*(((YS-Ys)^3-(YP-Ys)^3)/(YP-YS))...
         + (1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-RBS(I))/(YS-Yss)))...
         * 1/(6*(YP-YS)) * ((Xe-XP)^3 - (Xw-XP)^3);
+
+      TERRKN(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Yn-YN)*(Yn-YP)...
+          + 1/(6*(YN-YP))*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Yn-YP)/DY*((Yn-YP)^2-(YN-YP)^2)...
+          * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-RBS(I))/(YP-Yss)));
+
+      TERRKS(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Ys-YS)*(Ys-YP)...
+          + 1/(2*(YP-YS))*((TN-TS)/(YN-YS)-(TP-RBS(I))/(YP-Yss)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
+          * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-RBS(I))/(YP-Yss)));
 
     % north -1
     elseif J==N-1
@@ -528,6 +605,16 @@ for I=1:N
         + (1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-TSS)/(YS-YSS)))...
         * 1/(6*(YP-YS)) * ((Xe-XP)^3 - (Xw-XP)^3);
 
+      TERRKN(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Yn-YN)*(Yn-YP)...
+          + 1/(6*(YN-YP))*((RBN(I)-TP)/(Ynn-YP)-(TN-TS)/(YN-YS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Yn-YP)/DY*((Yn-YP)^2-(YN-YP)^2)...
+          * (1/(YN-YP)*((RBN(I)-TP)/(Ynn-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
+
+      TERRKS(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Ys-YS)*(Ys-YP)...
+          + 1/(2*(YP-YS))*((TN-TS)/(YN-YS)-(TP-TSS)/(YP-YSS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
+          * (1/(YN-YP)*((RBN(I)-TP)/(Ynn-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
+
     % north
     elseif J==N
       YS=YCR(J);
@@ -548,6 +635,13 @@ for I=1:N
         * 1/(6*(YP-YS))*(((YS-Ys)^3-(YP-Ys)^3)/(YP-YS))...
         + (1/(Yn-Ys)*((RBN(I)-TP)/(Yn-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-TSS)/(YS-YSS)))...
         * 1/(6*(YP-YS)) * ((Xe-XP)^3 - (Xw-XP)^3);
+
+      TERRKN(I,J) = 0;
+
+      TERRKS(I,J) = 1/(2*(Yn-Ys))*((RBN(I)-TP)/(Yn-YP) - (TP-TS)/(YP-YS))*(Ys-YS)*(Ys-YP)...
+          + 1/(2*(YP-YS))*((RBN(I)-TS)/(Yn-YS)-(TP-TSS)/(YP-YSS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
+          * (1/(Yn-YP)*((RBN(I)-TP)/(Yn-YP)-(RBN(I)-TS)/(Yn-YS)) - 1/(YP-YS)*((RBN(I)-TS)/(Yn-YS) - (TP-TSS)/(YP-YSS)));
 
     % else
     else
@@ -578,23 +672,32 @@ for I=1:N
         * 1/(6*(YP-YS))*(((YS-Ys)^3-(YP-Ys)^3)/(YP-YS))...
         + (1/(Yn-Ys)*((TN-TP)/(YN-YP)-(TP-TS)/(YP-YS)) - 1/(Ys-Yss)*((TP-TS)/(YP-YS)-(TS-TSS)/(YS-YSS)))...
         * 1/(6*(YP-YS)) * ((Xe-XP)^3 - (Xw-XP)^3);
+
+      TERRKN(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Yn-YN)*(Yn-YP)...
+          + 1/(6*(YN-YP))*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Yn-YP)/DY*((Yn-YP)^2-(YN-YP)^2)...
+          * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
+
+      TERRKS(I,J) = 1/(2*(Yn-Ys))*((TN-TP)/(YN-YP) - (TP-TS)/(YP-YS))*(Ys-YS)*(Ys-YP)...
+          + 1/(2*(YP-YS))*((TN-TS)/(YN-YS)-(TP-TSS)/(YP-YSS)) * ((Xe-XP)^3 - (Xw-XP)^3)...
+          + 1/6*(Ys-YP)/DY*((Ys-YP)^2-(YS-YP)^2)...
+          * (1/(YN-YP)*((TNN-TP)/(YNN-YP)-(TN-TS)/(YN-YS)) - 1/(YP-YS)*((TN-TS)/(YN-YS) - (TP-TSS)/(YP-YSS)));
     end
 
-    TERR(I,J) = TERRS(I,J) - TERRDE(I,J)*DY + TERRDW(I,J)*DY - TERRDN(I,J)*DX + TERRDS(I,J)*DX;
+    TERR(I,J) = TERRS(I,J) - TERRDE(I,J)*DY + TERRDW(I,J)*DY - TERRDN(I,J)*DX + TERRDS(I,J)*DX...
+                           - TERRKE(I,J)*DY + TERRKW(I,J)*DY - TERRKN(I,J)*DX + TERRKS(I,J)*DX;
   end
 end
 
 figure(5)
 
-surf(XC(2:N-1), YC(2:N-1), TERR(2:N-1,2:N-1)');
+surf(XC(2:N-1), YC(2:N-1), [TERR(2:N-1,2:N-1)]');
+%surf(XC(3:N-2), YC(3:N-2), [TERR(3:N-2,3:N-2)]');
 %surf(XC, YC, TERR');
 title('TE');
-xlabel('x');
-ylabel('y');
 
 
 RESTE = RES2-TERR;
 figure(6)
 surf(XC(3:N-2), YC(3:N-2), RESTE(3:N-2, 3:N-2)');
-%surf(XC, YC, RESTE');
-title('RES-TE')
+title('RES-TE');

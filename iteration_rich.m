@@ -3,8 +3,8 @@ clc;
 clear all;
 
 
-N=10;
-ITER=100;
+N=20;
+ITER=350;
 
 XHIST = zeros(ITER,N+1);
 TEHIST = zeros(ITER,N);
@@ -40,18 +40,19 @@ for A=1:ITER
   %finer solution
   [TERRI2, RESI2, TI2,SERRI2,ERRI2] = dif1d_orth_it(N*2,XFINE);
 
-  ERR=0;
-  for I=1:N
-    ERR=ERR+TERRI(I)^2;
-  end
-  SERR(A)=sqrt(ERR/(N));
-
-
   % richardson extrapolation
   TR = zeros(1,N);
   for I=1:N
     TR(I) = (4*TI2(2*I) - TI(I))/3;
   end
+
+  INDICATOR = TR.-TI';
+  ERR=0;
+  for I=1:N
+    ERR=ERR+INDICATOR(I)^2;
+  end
+  SERR(A)=sqrt(ERR/(N));
+
 
 
 %  fprintf('Summierter Fehler %16.10e I=%g\n', SERR(A), A);
@@ -60,7 +61,7 @@ for A=1:ITER
   [XI,WI] = rref_te(N,XI,TR.-TI');
 
   % Werte speichern
-  TEHIST(A,:) = TERRI;
+  TEHIST(A,:) = INDICATOR;
   RESHIST(A,:) =RESI;
   THIST(A,:) = TI;
   SOLERRHIST(A,:) = SERRI;
